@@ -1,5 +1,5 @@
-const CACHE = 'daily-reader-shell-v6';
-const SHELL = ['./', './index.html', './styles.css?v=20261121-3', './app.js?v=20261121-3', './manifest.webmanifest', './icon.svg'];
+const CACHE = 'daily-reader-shell-v7';
+const SHELL = ['./', './index.html', './styles.css?v=20261121-4', './app.js?v=20261121-4', './manifest.webmanifest', './icon.svg'];
 const META = './__daily_reader_cache_created__';
 const MAX_AGE = 30 * 24 * 60 * 60 * 1000;
 
