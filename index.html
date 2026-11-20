@@ -1,26 +1,22 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#203c32"><meta name="description" content="A thoughtful daily literary journal.">
-<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="stylesheet" href="styles.css"><title>The Daily Reader</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#203c32"><meta name="description" content="Three thoughtful readings, every day.">
+<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css?v=20261121-2"><title>The Daily Reader</title>
 </head>
 <body>
-<header class="topbar"><div class="brand"><span class="brand-mark">✳</span><div><div class="brand-name">The Daily Reader</div><div class="brand-sub">A DAILY LITERARY JOURNAL</div></div></div><button id="settingsBtn" class="icon-btn" aria-label="Settings">⚙</button></header>
+<header class="topbar"><div class="brand"><span class="brand-mark">✳</span><div><div class="brand-name">The Daily Reader</div><div class="brand-sub">A DAILY LITERARY JOURNAL</div></div></div></header>
 <main>
 <section id="homeView" class="view active">
-  <div class="welcome"><div class="eyebrow" id="dateLabel">YOUR DAILY EDITION</div><h1>A little more<br><em>literature,</em> every day.</h1><p>Three readings. New voices. A wider world.</p></div>
-  <div class="progress-card"><div class="progress-top"><span>YOUR DAILY PROGRESS</span><b id="progressText">0 of 3 read</b></div><div class="progress-track"><div id="progressFill"></div></div><div class="progress-foot"><span id="streakText">A new page awaits.</span><button id="historyLink" class="text-btn">Reading history →</button></div></div>
-  <div class="section-heading"><div><div class="eyebrow">TODAY'S SELECTION</div><h2>Today's reading</h2></div><button class="text-btn" id="refreshBtn">↻ Discover</button></div>
-  <div id="editionList" class="edition-list"></div>
-  <div class="note">A considered mix of classic and contemporary writing, selected to broaden your literary horizons.</div>
+<div class="welcome"><div class="eyebrow" id="dateLabel">YOUR DAILY EDITION</div><h1>Three readings.<br><em>One quiet ritual.</em></h1><p>An essay, a short story and an article. Ready when you are.</p></div>
+<div class="progress-card"><div class="progress-top"><span>YOUR DAILY PROGRESS</span><b id="progressText">0 of 3 read</b></div><div class="progress-track"><div id="progressFill"></div></div><div class="progress-foot"><span id="streakText">A new page awaits.</span></div></div>
+<div class="section-heading"><div><div class="eyebrow">TODAY'S SELECTION</div><h2>Today's reading</h2></div><button class="text-btn" id="refreshBtn">↻ Refresh</button></div>
+<div id="editionList" class="edition-list"></div>
+<div class="note">Three carefully chosen readings. No endless feed, no noise. Just read.</div>
 </section>
 <section id="readerView" class="view"><button class="back-btn" id="backHome">← Today's edition</button><article id="readerArticle" class="reader-article"></article></section>
-<section id="historyView" class="view"><div class="eyebrow">YOUR READING LIFE</div><h2>Reading history</h2><div class="stats-grid" id="statsGrid"></div><h3 class="subhead">Recent editions</h3><div id="historyList"></div></section>
-<section id="discoverView" class="view"><div class="eyebrow">BEYOND TODAY</div><h2>Discover literature</h2><p class="muted">Look for public-domain books and stories in the Gutenberg catalogue.</p><form id="searchForm" class="search-row"><input id="searchInput" placeholder="Try Tagore, Woolf, Premchand…" aria-label="Search literature"><button>Search</button></form><div id="searchResults"></div><div class="source-box"><b>Sources & access</b><p>Public-domain texts are retrieved from Project Gutenberg through Gutendex. Contemporary articles are discovered through publication feeds and remain subject to their publishers' access and copyright terms.</p></div></section>
-<section id="settingsView" class="view"><div class="eyebrow">MAKE IT YOURS</div><h2>Preferences</h2><div class="setting-card"><label for="reminderTime">Morning reminder</label><p class="muted">Choose when your daily edition should arrive.</p><div class="setting-row"><input type="time" id="reminderTime" value="08:00"><button id="saveReminder">Save reminder</button></div><p id="reminderStatus" class="small muted">Default: 8:00 AM</p></div><div class="setting-card"><label>Reading preferences</label><p class="muted">English primarily · Hindi occasionally · Progressive difficulty</p><p class="small muted">Recommendations adapt to your likes and dislikes on this device.</p></div><div class="setting-card"><label>Data & privacy</label><p class="muted">Your reading history, saved items and preferences are stored locally on this device. No account is required.</p><button id="exportData" class="secondary-btn">Export my reading data</button></div><div class="setting-card"><label>About the selections</label><p class="muted">Every item should show its writer, original source, publication/origin details and a link to the source. If a full text is not lawfully available, the app links to the publisher instead.</p></div></section>
 </main>
-<nav class="bottom-nav"><button class="nav-item active" data-view="homeView"><span>⌂</span>Today</button><button class="nav-item" data-view="discoverView"><span>⌕</span>Discover</button><button class="nav-item" data-view="historyView"><span>▤</span>History</button></nav>
-<div id="bioModal" class="modal hidden"><div class="modal-panel"><button class="modal-close" id="closeBio">×</button><div class="eyebrow">THE WRITER</div><h2 id="bioName"></h2><p id="bioText"></p><a id="bioLink" target="_blank" rel="noopener">More about this writer ↗</a></div></div>
-<div id="toast" class="toast"></div>
-<script src="app.js"></script>
+<script src="app.js?v=20261121-2"></script>
 </body></html>
