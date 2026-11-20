@@ -37,7 +37,25 @@ self.addEventListener('fetch', event => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
   event.respondWith((async () => {
-    const cache = await caches.open(CACHE);
+    let cache = await caches.open(CACHE);
+    const stamp = await cache.match(META);
+    const created = stamp ? Number(await stamp.text()) : 0;
+    if (!created || Date.now() - created > MAX_AGE) {
+      await caches.delete(CACHE);
+      cache = await caches.open(CACHE);
+      try {
+        const response = await fetch(request);
+        if (response.ok) {
+          await cache.put(request, response.clone());
+          await cache.put(META, new Response(String(Date.now())));
+        }
+        return response;
+      } catch (error) {
+        return new Response('The 30-day offline cache has expired. Reconnect once to refresh the app and its reading library.', {
+          status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+        });
+      }
+    }
     const cached = await cache.match(request);
     if (cached) return cached;
     try {
