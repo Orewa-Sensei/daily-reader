@@ -74,17 +74,7 @@ Framton grabbed wildly at his stick and hat; the hall-door, the gravel-drive, an
 “I expect it was the spaniel,” said the niece calmly; “he told me he had a horror of dogs. He was once hunted into a cemetery somewhere on the banks of the Ganges by a pack of pariah dogs, and had to spend the night in a newly dug grave with the creatures snarling and grinning and foaming just above him. Enough to make anyone lose their nerve.”
 
 Romance at short notice was her speciality.`},
- {id:'article-original',type:'ARTICLE',title:'The case for sustained attention',author:'The Daily Reader · Editorial',year:'Original essay · 2026',minutes:6,summary:'Why the ability to stay with a difficult thought may be one of the most valuable habits we can cultivate.',source:'The Daily Reader · Original editorial',origin:'An original article written for this app; not republished from another publisher.',url:'https://orewa-sensei.github.io/daily-reader/',bio:'The Daily Reader publishes original short essays alongside public-domain literature.',bioUrl:'https://orewa-sensei.github.io/daily-reader/',text:`We often speak of attention as though it were merely a resource to be spent: a limited supply of minutes that must be allocated between lectures, messages, work and entertainment. But attention is more than the time we give something. It is the manner in which we meet the world.
-
-To attend to a book is to allow another mind to set the pace for a while. A sentence may resist us; an argument may require a second reading; an image may become meaningful only several pages later. This is not inefficiency. It is the work by which understanding is formed.
-
-The modern habit of constant switching trains us to expect immediate returns. We open a page, glance at a notification, return to the page, and discover that the thread of thought has gone cold. The loss is subtle. We may still recognise words and collect facts, yet find it harder to follow a complex idea from its beginning to its conclusion.
-
-Sustained attention does not require an elaborate ritual. It can begin with fifteen undisturbed minutes. Put the phone beyond reach. Read a few pages without measuring how quickly they pass. When a sentence is difficult, pause rather than flee. If a question arises, note it in the margin and continue.
-
-The point is not to reject every distraction or romanticise an earlier age. Tools can widen access to knowledge, and short forms can be intelligent and beautiful. The question is whether we choose the rhythm, or allow the rhythm to choose for us.
-
-A daily reading practice is modest, but its effects accumulate. Each session asks us to remain present a little longer, to tolerate uncertainty, and to follow another person's reasoning. In time, this becomes more than a reading skill. It becomes a way of thinking: patient, deliberate, and capable of giving an idea the attention it deserves.`},
+ {id:'article-aeon-selkie',type:'ARTICLE',title:'My grandmother was a seal',author:'Jordan Lee Borgman',year:'20 November 2026',minutes:7,summary:'Many Irish families believed they descended from selkies. Their stories reveal the violence and grief in our kinship with nature.',source:'Aeon · Original essay',origin:'Original article by Jordan Lee Borgman, published by Aeon. The full text remains on the publisher’s website.',url:'https://aeon.co/essays/do-you-have-a-selkie-or-a-seal-in-the-family',bio:'Jordan Lee Borgman recently completed a Master of Divinity postgraduate degree at Harvard Divinity School, focusing on comparative religion and sacred landscapes. She is originally from Bangor, Maine.',bioUrl:'https://aeon.co/essays/do-you-have-a-selkie-or-a-seal-in-the-family',externalOnly:true},
 ];
 
 let state={};
@@ -107,7 +97,12 @@ function render(){
  document.querySelectorAll('[data-read]').forEach(b=>b.onclick=()=>openReading(Number(b.dataset.read)));
 }
 function displayReading(x){
- $('#readerArticle').innerHTML='<div class="eyebrow">'+esc(x.type)+' · '+esc(x.year)+'</div><h1>'+esc(x.title)+'</h1><div class="reader-meta">By '+esc(x.author)+' · '+x.minutes+' min read</div><div class="reader-body">'+paragraphs(x.text)+'</div><div class="provenance"><b>About this reading</b><br>'+esc(x.origin)+'<br><a href="'+esc(x.url)+'" target="_blank" rel="noopener">Source and further reading ↗</a></div>';
+ const articleText=x.externalOnly
+ ? '<div class="external-reading"><p>This article is published by '+esc(x.source||'its original publisher')+'. To respect the author and publisher, the complete article is read at its original home.</p><a class="read-btn external-link" href="'+esc(x.url)+'" target="_blank" rel="noopener">Read original article ↗</a></div>'
+ : '<div class="reader-body">'+paragraphs(x.text||'')+'</div>';
+ $('#readerArticle').innerHTML='<div class="eyebrow">'+esc(x.type)+' · '+esc(x.year)+'</div><h1>'+esc(x.title)+'</h1><div class="reader-meta">By '+esc(x.author)+' · '+x.minutes+' min read</div>'+articleText+'<section class="author-panel"><button type="button" id="authorToggle" class="author-toggle" aria-expanded="false">About the author <span>＋</span></button><div id="authorBio" class="author-bio" hidden><p>'+esc(x.bio||'A verified biography is not available for this author yet.')+'</p><a href="'+esc(x.bioUrl||x.url)+'" target="_blank" rel="noopener">Author biography / source ↗</a></div></section><div class="provenance"><b>About this reading</b><br>'+esc(x.origin)+'<br><a href="'+esc(x.url)+'" target="_blank" rel="noopener">Original source ↗</a></div>';
+ const toggle=$('#authorToggle'),bio=$('#authorBio');
+ toggle.onclick=()=>{const open=bio.hidden;bio.hidden=!open;toggle.setAttribute('aria-expanded',String(open));toggle.querySelector('span').textContent=open?'−':'＋'};
  setView('readerView');
 }
 function openReading(i){
