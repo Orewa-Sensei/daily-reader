@@ -1,0 +1,17 @@
+{
+  "id": "./",
+  "name": "The Daily Reader",
+  "short_name": "Daily Reader",
+  "description": "A thoughtful daily literary journal: one essay, one short story and one article.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f1e8",
+  "theme_color": "#203c32",
+  "lang": "en",
+  "categories": ["books", "education", "lifestyle"],
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
