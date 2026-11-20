@@ -1,4 +1,4 @@
-const CACHE = 'daily-reader-shell-v3';
+const CACHE = 'daily-reader-shell-v4';
 const SHELL = ['./', './index.html', './styles.css', './app.js', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', event => {
