@@ -86,32 +86,41 @@ The point is not to reject every distraction or romanticise an earlier age. Tool
 
 A daily reading practice is modest, but its effects accumulate. Each session asks us to remain present a little longer, to tolerate uncertainty, and to follow another person's reasoning. In time, this becomes more than a reading skill. It becomes a way of thinking: patient, deliberate, and capable of giving an idea the attention it deserves.`},
 ];
+
 let state={};
-try{state=JSON.parse(localStorage.getItem('dailyReader.simple.v1')||'{}')}catch(e){state={}}
+try{state=JSON.parse(localStorage.getItem('dailyReader.v2')||'{}')}catch(e){state={}}
 state.read=state.read||{};
 state.saved=state.saved||{};
+state.history=Array.isArray(state.history)?state.history:[];
 const today=new Date();
-const dateText=today.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'});
-document.querySelector('#dateLabel').textContent=dateText.toUpperCase()+' · DAILY EDITION';
-function save(){localStorage.setItem('dailyReader.simple.v1',JSON.stringify(state))}
+document.querySelector('#dateLabel').textContent=today.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'}).toUpperCase()+' · DAILY EDITION';
+function save(){localStorage.setItem('dailyReader.v2',JSON.stringify(state))}
 function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function paragraphs(text){return text.split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean).map(p=>'<p>'+esc(p)+'</p>').join('')}
+function setView(id){document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===id));document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.view===id));if(id==='historyView')renderHistory();window.scrollTo(0,0)}
 function render(){
  const done=SEEDS.filter(x=>state.read[x.id]).length;
- document.querySelector('#progressText').textContent=done+' of 3 read';
- document.querySelector('#progressFill').style.width=(done/3*100)+'%';
- document.querySelector('#streakText').textContent=done===3?'Today’s edition is complete.':done===0?'A new page awaits.':done+' of 3 readings completed.';
- document.querySelector('#editionList').innerHTML=SEEDS.map((x,i)=>'<article class="reading-card"><div class="card-top"><span class="tag">'+x.type+'</span><span class="duration">'+x.minutes+' MIN READ</span></div><h3>'+esc(x.title)+'</h3><div class="writer">by '+esc(x.author)+' · '+esc(x.year)+'</div><p class="summary">'+esc(x.summary)+'</p><div class="card-actions"><button class="read-btn" data-read="'+i+'">'+(state.read[x.id]?'Read again':'Start reading')+' →</button><button class="save-btn" data-save="'+i+'" aria-label="Save">'+(state.saved[x.id]?'★':'☆')+'</button><span class="status">'+(state.read[x.id]?'READ':state.saved[x.id]?'SAVED':'UNREAD')+'</span></div></article>').join('');
+ $('#progressText').textContent=done+' of 3 read';
+ $('#progressFill').style.width=(done/3*100)+'%';
+ $('#streakText').textContent=done===3?'Today’s edition is complete.':done===0?'A new page awaits.':done+' of 3 readings completed.';
+ $('#editionList').innerHTML=SEEDS.map((x,i)=>'<article class="reading-card"><div class="card-top"><span class="tag">'+x.type+'</span><span class="duration">'+x.minutes+' MIN READ</span></div><h3>'+esc(x.title)+'</h3><div class="writer">by '+esc(x.author)+' · '+esc(x.year)+'</div><p class="summary">'+esc(x.summary)+'</p><div class="card-actions"><button class="read-btn" data-read="'+i+'">'+(state.read[x.id]?'Read again':'Start reading')+' →</button><span class="status">'+(state.read[x.id]?'READ':'UNREAD')+'</span></div></article>').join('');
  document.querySelectorAll('[data-read]').forEach(b=>b.onclick=()=>openReading(Number(b.dataset.read)));
- document.querySelectorAll('[data-save]').forEach(b=>b.onclick=()=>{const x=SEEDS[Number(b.dataset.save)];state.saved[x.id]=!state.saved[x.id];save();render()});
 }
 function openReading(i){
- const x=SEEDS[i];state.read[x.id]=true;save();render();
- document.querySelector('#homeView').classList.remove('active');
- document.querySelector('#readerView').classList.add('active');
- document.querySelector('#readerArticle').innerHTML='<div class="eyebrow">'+esc(x.type)+' · '+esc(x.year)+'</div><h1>'+esc(x.title)+'</h1><div class="reader-meta">By '+esc(x.author)+' · '+x.minutes+' min read</div><div class="reader-body">'+paragraphs(x.text)+'</div><div class="provenance"><b>About this reading</b><br>'+esc(x.origin)+'<br><a href="'+esc(x.url)+'" target="_blank" rel="noopener">Source and further reading ↗</a></div>';
- window.scrollTo(0,0);
+ const x=SEEDS[i];state.read[x.id]=true;
+ if(!state.history.some(h=>h.id===x.id)){state.history.unshift({id:x.id,readAt:new Date().toISOString()})}
+ else {const h=state.history.find(h=>h.id===x.id);h.lastReadAt=new Date().toISOString()}
+ save();render();
+ $('#readerArticle').innerHTML='<div class="eyebrow">'+esc(x.type)+' · '+esc(x.year)+'</div><h1>'+esc(x.title)+'</h1><div class="reader-meta">By '+esc(x.author)+' · '+x.minutes+' min read</div><div class="reader-body">'+paragraphs(x.text)+'</div><div class="provenance"><b>About this reading</b><br>'+esc(x.origin)+'<br><a href="'+esc(x.url)+'" target="_blank" rel="noopener">Source and further reading ↗</a></div>';
+ setView('readerView');
 }
-document.querySelector('#backHome').onclick=()=>{document.querySelector('#readerView').classList.remove('active');document.querySelector('#homeView').classList.add('active');window.scrollTo(0,0)};
-document.querySelector('#refreshBtn').onclick=()=>{render();document.querySelector('#editionList').scrollIntoView({behavior:'smooth',block:'start'})};
+function renderHistory(){
+ const list=$('#historyList');
+ if(!state.history.length){list.innerHTML='<p class="muted">Your completed readings will appear here. Open a reading from Today to add it to your history.</p>';return}
+ list.innerHTML=state.history.map(h=>{const x=SEEDS.find(s=>s.id===h.id);if(!x)return '';const date=new Date(h.lastReadAt||h.readAt).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});return '<article class="history-card"><div class="eyebrow">'+esc(x.type)+' · '+date+'</div><h3>'+esc(x.title)+'</h3><p class="history-author">'+esc(x.author)+'</p><button class="read-btn" data-history="'+SEEDS.indexOf(x)+'">Read again →</button></article>'}).join('');
+ document.querySelectorAll('[data-history]').forEach(b=>b.onclick=()=>openReading(Number(b.dataset.history)));
+}
+document.querySelectorAll('.nav-item').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+$('#backHome').onclick=()=>setView('homeView');
+$('#refreshBtn').onclick=()=>{render();$('#editionList').scrollIntoView({behavior:'smooth',block:'start'})};
 render();
