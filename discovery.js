@@ -65,6 +65,30 @@ async function openAccessArticles(seen){
  }));
  return pick([...map.values()],30,hash('articles'+Date.now()));
 }
+function textDb(){
+ return new Promise((resolve,reject)=>{
+  const req=indexedDB.open('daily-reader-content',1);
+  req.onupgradeneeded=()=>req.result.createObjectStore('works',{keyPath:'id'});
+  req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);
+ });
+}
+async function cacheText(work){
+ if(!work||!work.textUrl||work.text)return false;
+ try{
+  const db=await textDb();
+  const existing=await new Promise((resolve,reject)=>{const tx=db.transaction('works','readonly'),r=tx.objectStore('works').get(work.id);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});
+  if(existing?.text){work.text=existing.text;work.externalOnly=false;return true}
+  const response=await fetch(work.textUrl);if(!response.ok)throw new Error('Text fetch failed');
+  let raw=await response.text();
+  raw=raw.replace(/^.*?\\*\\*\\* START OF (?:THE|THIS) PROJECT GUTENBERG EBOOK[^\\n]*\\n/i,'').replace(/\\*\\*\\* END OF (?:THE|THIS) PROJECT GUTENBERG EBOOK[\\s\\S]*$/i,'');
+  raw=raw.slice(0,180000);
+  await new Promise((resolve,reject)=>{const tx=db.transaction('works','readwrite');tx.objectStore('works').put({id:work.id,text:raw,savedAt:Date.now()});tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});
+  db.close();work.text=raw;work.externalOnly=false;return true;
+ }catch(error){work.externalOnly=true;return false}
+}
+async function getCachedText(id){
+ try{const db=await textDb();const item=await new Promise((resolve,reject)=>{const r=db.transaction('works','readonly').objectStore('works').get(id);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});db.close();return item?.text||null}catch(e){return null}
+}
 function loadQueue(){try{return JSON.parse(localStorage.getItem(STORE)||'[]')}catch(e){return []}}
 function saveQueue(q){try{localStorage.setItem(STORE,JSON.stringify(q.slice(0,5)))}catch(e){}}
 async function discover(history,alreadyQueued){
@@ -98,5 +122,5 @@ async function discover(history,alreadyQueued){
  const diagnostics={source:'Gutendex + OpenAlex',essays:essays.length,stories:stories.length,articles:articles.length,daysPrepared:queue.length,live:true};
  return {queue,diagnostics};
 }
-global.DailyReaderDiscovery={discover,loadQueue,saveQueue};
+global.DailyReaderDiscovery={discover,loadQueue,saveQueue,cacheText,getCachedText};
 })(window);
