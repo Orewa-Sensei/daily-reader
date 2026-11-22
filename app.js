@@ -81,6 +81,18 @@ Romance at short notice was her speciality.`},
  {id:'article-aeon-reading-good',type:'ARTICLE',title:'Does reading do us any good?',author:'Flora Champy',year:'2026',minutes:29,summary:'A French political-literature scholar asks what literature is for, beyond the familiar claim that it makes us better people.',source:'Aeon · Original essay',origin:'Original essay by Flora Champy, associate professor of French at Princeton University, published by Aeon. The complete text remains with the publisher.',url:'https://aeon.co/essays/the-role-of-literature-as-the-key-to-personal-freedom',bio:'Flora Champy is an associate professor of French at Princeton University. Her research focuses on eighteenth-century French political literature and philosophy, combining literary analysis with political theory.',bioUrl:'https://aeon.co/essays/the-role-of-literature-as-the-key-to-personal-freedom',externalOnly:true},
 ];
 
+const EDITORIAL_META={
+ 'essay-bacon':{language:'English',region:'Western Europe',tradition:'Early modern English essay',period:'17th century',form:'Essay',genres:['philosophical essay'],themes:['reading','education','knowledge'],perspectives:['philosopher','statesman'],editorialScore:3.8},
+ 'essay-goethe':{language:'German (English translation)',region:'Central Europe',tradition:'German classicism',period:'18th–19th century',form:'Literary essay',genres:['literary criticism'],themes:['literature','art','aesthetics'],perspectives:['writer','critic'],editorialScore:3.7},
+ 'story-saki':{language:'English',region:'Western Europe',tradition:'Edwardian British short fiction',period:'early 20th century',form:'Short story',genres:['satire','comedy'],themes:['deception','society','storytelling'],perspectives:['satirist'],editorialScore:3.8},
+ 'story-tagore-postmaster':{language:'Bengali (English translation)',region:'South Asia · Bengal',tradition:'Bengali literary renaissance',period:'19th century',form:'Short story',genres:['literary fiction'],themes:['loneliness','class','belonging','care'],perspectives:['writer','social observer'],editorialScore:4.2},
+ 'article-aeon-selkie':{language:'English',region:'Europe · Ireland / North Atlantic',tradition:'Contemporary cultural essay',period:'21st century',form:'Digital literary essay',genres:['folklore','cultural criticism'],themes:['folklore','kinship','ecology','memory'],perspectives:['researcher','cultural historian'],editorialScore:4},
+ 'article-aeon-reading':{language:'English',region:'Western Europe · France',tradition:'Contemporary literary criticism',period:'21st century',form:'Digital literary essay',genres:['literary criticism','philosophy'],themes:['reading','freedom','literature'],perspectives:['academic','critic'],editorialScore:4}
+};
+for(const work of SEEDS)Object.assign(work,EDITORIAL_META[work.id]||{},{
+ verified:true,sourceUrl:work.url,authorKey:(work.author||'').toLowerCase().trim()
+});
+
 let state={};
 try{state=JSON.parse(localStorage.getItem('dailyReader.v2')||'{}')}catch(e){state={}}
 state.read=state.read||{};
@@ -90,14 +102,11 @@ state.editionDate=state.editionDate||'';
 state.refreshCount=Number.isInteger(state.refreshCount)?state.refreshCount:0;
 const today=new Date();
 function dateKey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+if(state.editionDate!==dateKey(today)){state.editionDate=dateKey(today);state.refreshCount=0}
 function selectEdition(){
- const key=dateKey(today);
- if(state.editionDate!==key){state.editionDate=key;state.refreshCount=0}
- const dayNumber=Math.floor(Date.UTC(today.getFullYear(),today.getMonth(),today.getDate())/86400000);
- return ['ESSAY','SHORT STORY','ARTICLE'].map(type=>{
-   const choices=SEEDS.filter(item=>item.type===type);
-   return choices[(dayNumber+state.refreshCount)%choices.length];
- });
+ const result=DailyReaderEngine.buildEdition(SEEDS,state.history,{now:today,refreshCount:state.refreshCount});
+ window.__editionDiagnostics=result.diagnostics;
+ return result.items;
 }
 let edition=selectEdition();
 document.querySelector('#dateLabel').textContent=today.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'}).toUpperCase()+' · DAILY EDITION';
