@@ -34,7 +34,14 @@ async function gutendex(type,seen){
  const results=await Promise.all(terms.map(t=>json('https://gutendex.com/books/?search='+encodeURIComponent(t)+'&languages='+lang)));
  const merged=new Map();
  results.forEach(x=>(x.results||[]).forEach(b=>{if(!merged.has(b.id)&&!seen.has('pg-'+b.id))merged.set(b.id,b)}));
- const arr=[...merged.values()].filter(b=>(b.formats||{})['text/plain; charset=utf-8']||(b.formats||{})['text/plain; charset=us-ascii']||(b.formats||{})['text/plain']);
+ const arr=[...merged.values()].filter(b=>{
+  const formats=b.formats||{},hasText=formats['text/plain; charset=utf-8']||formats['text/plain; charset=us-ascii']||formats['text/plain'];
+  if(!hasText)return false;
+  const meta=norm([b.title,...(b.subjects||[])].join(' '));
+  return type==='ESSAY'
+   ? /(essay|essays|philosoph|literary criticism|criticism|aesthetics)/.test(meta)
+   : /(short stor|tales|fiction|folklore|legend|fables)/.test(meta);
+ });
  return pick(arr,24,hash(type+Date.now())).map(b=>gutendexItem(b,type));
 }
 async function hindiWorks(type,seen){
