@@ -123,7 +123,7 @@ function displayReading(x){
  setView('readerView');
 }
 function openReading(i){
- const x=SEEDS[i];state.read[x.id]=true;
+ const x=edition[i];state.read[x.id]=true;
  const existing=state.history.find(h=>h.id===x.id);
  if(!existing)state.history.unshift({id:x.id,readAt:new Date().toISOString(),reading:{...x}});
  else {existing.lastReadAt=new Date().toISOString();existing.reading={...x}}
