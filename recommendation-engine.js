@@ -10,7 +10,7 @@
   function list(v){return Array.isArray(v)?v.filter(Boolean):v?[v]:[]}
   function overlap(a,b){const A=new Set(list(a));return list(b).filter(x=>A.has(x)).length}
   function recentCounts(history,field,days,now){
-    const counts={};for(const h of history||[]){const at=new Date(h.lastReadAt||h.readAt||0).getTime();if(!at||now-at>days*DAY_MS)continue;const x=h.reading||h;for(const v of list(x[field]))counts[v]=(counts[v]||0)+1}return counts;
+    const counts={};for(const h of history||[]){const at=new Date(h.lastReadAt||h.readAt||0).getTime();if(!at||now-at>days*DAY_MS)continue;const x=h.reading||h;const values=field==='authorKey'?[String(x.author||'').toLowerCase().trim()]:list(x[field]);for(const v of values)if(v)counts[v]=(counts[v]||0)+1}return counts;
   }
   function normalise(work){
     return {...work,language:work.language||'unknown',region:work.region||'unclassified',tradition:work.tradition||'unclassified',period:work.period||'unclassified',form:work.form||work.type,genres:list(work.genres),themes:list(work.themes),perspectives:list(work.perspectives),authorKey:(work.author||'').toLowerCase().trim()};
@@ -37,7 +37,7 @@
     // Small editorial quality signal; never a substitute for source verification.
     score+=Math.max(0,Math.min(5,Number(w.editorialScore)||3))*0.55;
     // Avoid repeatedly showing a just-seen item.
-    score-=Math.max(0,14-(c.works[w.id]||0)*0+ (c.works[w.id]?14:0));
+    if(c.works[w.id])score-=14;
     return score;
   }
   function buildEdition(catalogue,history,options){
