@@ -93,6 +93,18 @@ for(const work of SEEDS)Object.assign(work,EDITORIAL_META[work.id]||{},{
  verified:true,sourceUrl:work.url,authorKey:(work.author||'').toLowerCase().trim()
 });
 
+const EDITORIAL_META={
+ 'essay-bacon':{language:'English',region:'Western Europe',tradition:'Early modern English essay',period:'17th century',form:'Essay',genres:['philosophical essay'],themes:['reading','education','knowledge'],perspectives:['philosopher','statesman'],editorialScore:3.8},
+ 'essay-goethe':{language:'German (English translation)',region:'Central Europe',tradition:'German classicism',period:'18th–19th century',form:'Literary essay',genres:['literary criticism'],themes:['literature','art','aesthetics'],perspectives:['writer','critic'],editorialScore:3.7},
+ 'story-saki':{language:'English',region:'Western Europe',tradition:'Edwardian British short fiction',period:'early 20th century',form:'Short story',genres:['satire','comedy'],themes:['deception','society','storytelling'],perspectives:['satirist'],editorialScore:3.8},
+ 'story-tagore-postmaster':{language:'Bengali (English translation)',region:'South Asia · Bengal',tradition:'Bengali literary renaissance',period:'19th century',form:'Short story',genres:['literary fiction'],themes:['loneliness','class','belonging','care'],perspectives:['writer','social observer'],editorialScore:4.2},
+ 'article-aeon-selkie':{language:'English',region:'Europe · Ireland / North Atlantic',tradition:'Contemporary cultural essay',period:'21st century',form:'Digital literary essay',genres:['folklore','cultural criticism'],themes:['folklore','kinship','ecology','memory'],perspectives:['researcher','cultural historian'],editorialScore:4},
+ 'article-aeon-reading':{language:'English',region:'Western Europe · France',tradition:'Contemporary literary criticism',period:'21st century',form:'Digital literary essay',genres:['literary criticism','philosophy'],themes:['reading','freedom','literature'],perspectives:['academic','critic'],editorialScore:4}
+};
+for(const work of SEEDS)Object.assign(work,EDITORIAL_META[work.id]||{},{
+ verified:true,sourceUrl:work.url,authorKey:(work.author||'').toLowerCase().trim()
+});
+
 let state={};
 try{state=JSON.parse(localStorage.getItem('dailyReader.v2')||'{}')}catch(e){state={}}
 state.read=state.read||{};
