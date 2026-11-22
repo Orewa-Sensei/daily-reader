@@ -126,12 +126,19 @@ if(!currentRecord||currentRecord.date!==dateKey(today)){
 async function replenishReserve(){
  if(!navigator.onLine||reserve.length>=5)return;
  try{
-  const occupied=[edition,...reserve];
+  const needsLiveToday=!(currentRecord&&currentRecord.date===dateKey(today));
+  const occupied=needsLiveToday?[...reserve]:[edition,...reserve];
   const result=await DailyReaderDiscovery.discover(state.history,occupied);
-  const known=new Set(occupied.flat().map(w=>w.id));
-  reserve=reserve.concat(result.queue.filter(day=>day.every(w=>!known.has(w.id)))).slice(0,5);
+  if(needsLiveToday&&result.queue.length){
+   edition=result.queue[0];reserve=result.queue.slice(1).concat(reserve).slice(0,5);
+   currentRecord={date:dateKey(today),items:edition};
+   localStorage.setItem(DISCOVERY_CURRENT,JSON.stringify(currentRecord));
+  }else{
+   const known=new Set(occupied.flat().map(w=>w.id));
+   reserve=reserve.concat(result.queue.filter(day=>day.every(w=>!known.has(w.id)))).slice(0,5);
+  }
   DailyReaderDiscovery.saveQueue(reserve);
-  await Promise.all(occupied.concat(reserve).flat().map(w=>DailyReaderDiscovery.cacheText(w)));
+  await Promise.all([edition,...reserve].flat().map(w=>DailyReaderDiscovery.cacheText(w)));
   window.__discoveryDiagnostics=result.diagnostics;
   const note=document.querySelector('.note');
   if(note)note.textContent='Live discovery · '+result.diagnostics.essays+' essays, '+result.diagnostics.stories+' stories and '+result.diagnostics.articles+' articles found. '+reserve.length+' future editions reserved.';
