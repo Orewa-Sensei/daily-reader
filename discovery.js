@@ -102,7 +102,7 @@ async function discover(history,alreadyQueued){
  const essays=settled[0].status==='fulfilled'?settled[0].value:[];
  const stories=(settled[1].status==='fulfilled'?settled[1].value:[]).concat(settled[2].status==='fulfilled'?settled[2].value:[]);
  const articles=settled[3].status==='fulfilled'?settled[3].value:[];
- const curated=(global.DAILY_READER_CATALOGUE||[]).filter(w=>w&&w.verified===true&&!seen.has(w.id));
+ const curated=(global.DAILY_READER_CATALOGUE||[]).concat(global.DAILY_READER_STATIC||[]).filter(w=>w&&w.verified===true&&!seen.has(w.id));
  const pool={
   ESSAY:essays.concat(curated.filter(w=>w.type==='ESSAY')),
   'SHORT STORY':stories.concat(curated.filter(w=>w.type==='SHORT STORY')),
