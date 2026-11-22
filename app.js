@@ -112,7 +112,50 @@ function selectEdition(){
  window.__editionDiagnostics=result.diagnostics;
  return result.items;
 }
-let edition=selectEdition();
+const DISCOVERY_CURRENT='dailyReader.currentEdition.v1';
+let reserve=DailyReaderDiscovery.loadQueue();
+let currentRecord=null;
+try{currentRecord=JSON.parse(localStorage.getItem(DISCOVERY_CURRENT)||'null')}catch(e){}
+let edition=(currentRecord&&currentRecord.date===dateKey(today)&&Array.isArray(currentRecord.items))
+ ? currentRecord.items : (reserve.shift()||selectEdition());
+if(!currentRecord||currentRecord.date!==dateKey(today)){
+ localStorage.setItem(DISCOVERY_CURRENT,JSON.stringify({date:dateKey(today),items:edition}));
+ DailyReaderDiscovery.saveQueue(reserve);
+}
+async function replenishReserve(){
+ if(!navigator.onLine||reserve.length>=5)return;
+ try{
+  const occupied=[edition,...reserve];
+  const result=await DailyReaderDiscovery.discover(state.history,occupied);
+  const known=new Set(occupied.flat().map(w=>w.id));
+  reserve=reserve.concat(result.queue.filter(day=>day.every(w=>!known.has(w.id)))).slice(0,5);
+  DailyReaderDiscovery.saveQueue(reserve);
+  window.__discoveryDiagnostics=result.diagnostics;
+  const note=document.querySelector('.note');
+  if(note)note.textContent='Live discovery · '+result.diagnostics.essays+' essays, '+result.diagnostics.stories+' stories and '+result.diagnostics.articles+' articles found. '+reserve.length+' future editions reserved.';
+ }catch(error){window.__discoveryError=String(error)}
+}
+async function discoverFreshEdition(){
+ if(!navigator.onLine){if(reserve.length){edition=reserve.shift();DailyReaderDiscovery.saveQueue(reserve);localStorage.setItem(DISCOVERY_CURRENT,JSON.stringify({date:dateKey(today),items:edition}));render();return}return}
+ const note=document.querySelector('.note');if(note)note.textContent='Searching literary sources for a fresh edition…';
+ try{
+  const result=await DailyReaderDiscovery.discover(state.history,[edition,...reserve]);
+  const next=result.queue[0];
+  if(next&&next.length===3){
+   edition=next;
+   reserve=result.queue.slice(1).concat(reserve).slice(0,5);
+   localStorage.setItem(DISCOVERY_CURRENT,JSON.stringify({date:dateKey(today),items:edition}));
+   DailyReaderDiscovery.saveQueue(reserve);
+   window.__discoveryDiagnostics=result.diagnostics;
+   render();
+   if(note)note.textContent='Freshly discovered · '+reserve.length+' future editions reserved.';
+  }else if(reserve.length){
+   edition=reserve.shift();DailyReaderDiscovery.saveQueue(reserve);render();
+   if(note)note.textContent='Using your preloaded reserve · live sources returned too few eligible works.';
+  }else if(note)note.textContent='Could not find enough new verified readings. Your current edition is unchanged.';
+ }catch(error){window.__discoveryError=String(error);if(note)note.textContent='Live discovery unavailable. Your saved reading reserve remains available.'}
+ replenishReserve();
+}
 document.querySelector('#dateLabel').textContent=today.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'}).toUpperCase()+' · DAILY EDITION';
 function save(){localStorage.setItem('dailyReader.v2',JSON.stringify(state))}
 function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -127,9 +170,18 @@ function render(){
  document.querySelectorAll('[data-read]').forEach(b=>b.onclick=()=>openReading(Number(b.dataset.read)));
 }
 function displayReading(x){
- const articleText=x.externalOnly
- ? '<div class="external-reading"><p>This article is published by '+esc(x.source||'its original publisher')+'. To respect the author and publisher, the complete article is read at its original home.</p><a class="read-btn external-link" href="'+esc(x.url)+'" target="_blank" rel="noopener">Read original article ↗</a></div>'
- : '<div class="reader-body">'+paragraphs(x.text||'')+'</div>';
+ let articleText='';
+ if(x.textUrl&&!x.text){
+  try{
+   const response=await fetch(x.textUrl);if(!response.ok)throw new Error('Text source unavailable');
+   let raw=await response.text();
+   raw=raw.replace(/^.*?\\*\\*\\* START OF (?:THE|THIS) PROJECT GUTENBERG EBOOK[^\\n]*\\n/i,'').replace(/\\*\\*\\* END OF (?:THE|THIS) PROJECT GUTENBERG EBOOK[\\s\\S]*$/i,'');
+   x.text=raw.slice(0,180000);x.externalOnly=false;
+  }catch(error){x.externalOnly=true}
+ }
+ articleText=x.externalOnly
+ ? '<div class="external-reading"><p>This reading is available from '+esc(x.source||'its original publisher')+'. Open the source edition to read the complete work.</p><a class="read-btn external-link" href="'+esc(x.url)+'" target="_blank" rel="noopener">Read original ↗</a></div>'
+ : '<div class="reader-body">'+paragraphs(x.text||'The full text could not be loaded. Open the original source edition below.')+'</div>';
  $('#readerArticle').innerHTML='<div class="eyebrow">'+esc(x.type)+' · '+esc(x.year)+'</div><div class="reader-language">'+esc(x.displayLanguage||'English')+(x.sourceLanguage&&x.sourceLanguage!=='English'?' · Originally '+esc(x.sourceLanguage):'')+'</div><h1>'+esc(x.title)+'</h1><div class="reader-meta">By '+esc(x.author)+' · '+x.minutes+' min read</div>'+articleText+'<section class="author-panel"><button type="button" id="authorToggle" class="author-toggle" aria-expanded="false">About the author <span>＋</span></button><div id="authorBio" class="author-bio" hidden><p>'+esc(x.bio||'A verified biography is not available for this author yet.')+'</p><a href="'+esc(x.bioUrl||x.url)+'" target="_blank" rel="noopener">Author biography / source ↗</a></div></section><div class="provenance"><b>About this reading</b><br>'+esc(x.origin)+(x.translationCredit?'<br>Translation: '+esc(x.translationCredit):'')+'<br><a href="'+esc(x.url)+'" target="_blank" rel="noopener">Original source ↗</a></div>';
  const toggle=$('#authorToggle'),bio=$('#authorBio');
  toggle.onclick=()=>{const open=bio.hidden;bio.hidden=!open;toggle.setAttribute('aria-expanded',String(open));toggle.querySelector('span').textContent=open?'−':'＋'};
@@ -155,5 +207,6 @@ function renderHistory(){
 }
 document.querySelectorAll('.nav-item').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 $('#backHome').onclick=()=>setView('homeView');
-$('#refreshBtn').onclick=()=>{state.refreshCount++;edition=selectEdition();save();render();$('#editionList').scrollIntoView({behavior:'smooth',block:'start'})};
+$('#refreshBtn').onclick=async()=>{state.refreshCount++;$('#refreshBtn').disabled=true;$('#refreshBtn').textContent='Searching…';await discoverFreshEdition();$('#refreshBtn').disabled=false;$('#refreshBtn').textContent='↻ Refresh';save();$('#editionList').scrollIntoView({behavior:'smooth',block:'start'})};
 render();
+replenishReserve();
