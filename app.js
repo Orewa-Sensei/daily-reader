@@ -94,6 +94,7 @@ const EDITORIAL_META={
 for(const work of SEEDS)Object.assign(work,EDITORIAL_META[work.id]||{},{
  verified:true,sourceUrl:work.url,authorKey:(work.author||'').toLowerCase().trim()
 });
+window.DAILY_READER_STATIC=SEEDS;
 
 
 
@@ -130,6 +131,7 @@ async function replenishReserve(){
   const known=new Set(occupied.flat().map(w=>w.id));
   reserve=reserve.concat(result.queue.filter(day=>day.every(w=>!known.has(w.id)))).slice(0,5);
   DailyReaderDiscovery.saveQueue(reserve);
+  await Promise.all(occupied.concat(reserve).flat().map(w=>DailyReaderDiscovery.cacheText(w)));
   window.__discoveryDiagnostics=result.diagnostics;
   const note=document.querySelector('.note');
   if(note)note.textContent='Live discovery · '+result.diagnostics.essays+' essays, '+result.diagnostics.stories+' stories and '+result.diagnostics.articles+' articles found. '+reserve.length+' future editions reserved.';
@@ -146,6 +148,7 @@ async function discoverFreshEdition(){
    reserve=result.queue.slice(1).concat(reserve).slice(0,5);
    localStorage.setItem(DISCOVERY_CURRENT,JSON.stringify({date:dateKey(today),items:edition}));
    DailyReaderDiscovery.saveQueue(reserve);
+   await Promise.all([edition,...reserve].flat().map(w=>DailyReaderDiscovery.cacheText(w)));
    window.__discoveryDiagnostics=result.diagnostics;
    render();
    if(note)note.textContent='Freshly discovered · '+reserve.length+' future editions reserved.';
@@ -171,6 +174,7 @@ function render(){
 }
 async function displayReading(x){
  let articleText='';
+ if(!x.text&&x.id){x.text=await DailyReaderDiscovery.getCachedText(x.id)}
  if(x.textUrl&&!x.text){
   try{
    const response=await fetch(x.textUrl);if(!response.ok)throw new Error('Text source unavailable');
