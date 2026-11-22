@@ -51,7 +51,14 @@
       periods:recentCounts(history,'period',45,now),
       works:recentCounts(history,'id',30,now)
     };
-    const candidates=catalogue.filter(x=>x&&x.id&&x.verified===true&&x.sourceUrl&&x.author&&TYPES.includes(x.type)&&x.eligible!==false);
+    const candidates=catalogue.filter(x=>{
+      if(!x||!x.id||x.verified!==true||!x.sourceUrl||!x.author||!TYPES.includes(x.type)||x.eligible===false)return false;
+      const original=(x.sourceLanguage||'').toLowerCase();
+      const presented=(x.displayLanguage||'').toLowerCase();
+      if(original==='hindi')return presented==='hindi'&&x.hindiOriginal===true;
+      if(original==='english')return presented==='english';
+      return presented==='english'&&x.translationStatus==='published-english-translation';
+    });
     const edition=[];
     for(const type of TYPES){
       const pool=candidates.filter(x=>x.type===type&&!edition.some(y=>y.id===x.id));
