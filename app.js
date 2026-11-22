@@ -75,6 +75,10 @@ Framton grabbed wildly at his stick and hat; the hall-door, the gravel-drive, an
 
 Romance at short notice was her speciality.`},
  {id:'article-aeon-selkie',type:'ARTICLE',title:'My grandmother was a seal',author:'Jordan Lee Borgman',year:'20 November 2026',minutes:7,summary:'Many Irish families believed they descended from selkies. Their stories reveal the violence and grief in our kinship with nature.',source:'Aeon · Original essay',origin:'Original article by Jordan Lee Borgman, published by Aeon. The full text remains on the publisher’s website.',url:'https://aeon.co/essays/do-you-have-a-selkie-or-a-seal-in-the-family',bio:'Jordan Lee Borgman recently completed a Master of Divinity postgraduate degree at Harvard Divinity School, focusing on comparative religion and sacred landscapes. She is originally from Bangor, Maine.',bioUrl:'https://aeon.co/essays/do-you-have-a-selkie-or-a-seal-in-the-family',externalOnly:true},
+
+ {id:'essay-goethe',type:'ESSAY',title:"Goethe's Literary Essays",author:'Johann Wolfgang von Goethe',year:'1921 edition',minutes:8,summary:'A selection of Goethe’s reflections on literature and art, presented in an English edition.',source:'Project Gutenberg · eBook 76103',origin:'A public-domain English edition of Goethe’s literary essays, edited by J. E. Spingarn; the text is hosted by Project Gutenberg.',url:'https://www.gutenberg.org/ebooks/76103',bio:'Johann Wolfgang von Goethe (1749–1832) was a German writer, poet, dramatist and natural philosopher, central to German literature.',bioUrl:'https://en.wikipedia.org/wiki/Johann_Wolfgang_von_Goethe',externalOnly:true},
+ {id:'story-tagore-postmaster',type:'SHORT STORY',title:'The Postmaster',author:'Rabindranath Tagore',year:'1891',minutes:10,summary:'A young postmaster from Calcutta finds himself isolated in a village, where he forms an unexpected bond with an orphan girl.',source:'Project Gutenberg · Mashi, and Other Stories, eBook 34757',origin:'A Bengali short story by Rabindranath Tagore, read here in an English translation from the Project Gutenberg edition. Translation credit is to the translators listed in that edition.',url:'https://www.gutenberg.org/ebooks/34757',bio:'Rabindranath Tagore (1861–1941) was a Bengali poet, novelist, playwright, composer and essayist. He wrote in Bengali and translated some of his own work into English.',bioUrl:'https://en.wikipedia.org/wiki/Rabindranath_Tagore',externalOnly:true},
+ {id:'article-aeon-reading-good',type:'ARTICLE',title:'Does reading do us any good?',author:'Flora Champy',year:'2026',minutes:29,summary:'A French political-literature scholar asks what literature is for, beyond the familiar claim that it makes us better people.',source:'Aeon · Original essay',origin:'Original essay by Flora Champy, associate professor of French at Princeton University, published by Aeon. The complete text remains with the publisher.',url:'https://aeon.co/essays/the-role-of-literature-as-the-key-to-personal-freedom',bio:'Flora Champy is an associate professor of French at Princeton University. Her research focuses on eighteenth-century French political literature and philosophy, combining literary analysis with political theory.',bioUrl:'https://aeon.co/essays/the-role-of-literature-as-the-key-to-personal-freedom',externalOnly:true},
 ];
 
 let state={};
@@ -82,18 +86,31 @@ try{state=JSON.parse(localStorage.getItem('dailyReader.v2')||'{}')}catch(e){stat
 state.read=state.read||{};
 state.saved=state.saved||{};
 state.history=Array.isArray(state.history)?state.history:[];
+state.editionDate=state.editionDate||'';
+state.refreshCount=Number.isInteger(state.refreshCount)?state.refreshCount:0;
 const today=new Date();
+function dateKey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function selectEdition(){
+ const key=dateKey(today);
+ if(state.editionDate!==key){state.editionDate=key;state.refreshCount=0}
+ const dayNumber=Math.floor(Date.UTC(today.getFullYear(),today.getMonth(),today.getDate())/86400000);
+ return ['ESSAY','SHORT STORY','ARTICLE'].map(type=>{
+   const choices=SEEDS.filter(item=>item.type===type);
+   return choices[(dayNumber+state.refreshCount)%choices.length];
+ });
+}
+let edition=selectEdition();
 document.querySelector('#dateLabel').textContent=today.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'}).toUpperCase()+' · DAILY EDITION';
 function save(){localStorage.setItem('dailyReader.v2',JSON.stringify(state))}
 function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function paragraphs(text){return text.split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean).map(p=>'<p>'+esc(p)+'</p>').join('')}
 function setView(id){document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===id));document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.view===id));if(id==='historyView')renderHistory();window.scrollTo(0,0)}
 function render(){
- const done=SEEDS.filter(x=>state.read[x.id]).length;
+ const done=edition.filter(x=>state.read[x.id]).length;
  $('#progressText').textContent=done+' of 3 read';
  $('#progressFill').style.width=(done/3*100)+'%';
  $('#streakText').textContent=done===3?'Today’s edition is complete.':done===0?'A new page awaits.':done+' of 3 readings completed.';
- $('#editionList').innerHTML=SEEDS.map((x,i)=>'<article class="reading-card"><div class="card-top"><span class="tag">'+x.type+'</span><span class="duration">'+x.minutes+' MIN READ</span></div><h3>'+esc(x.title)+'</h3><div class="writer">by '+esc(x.author)+' · '+esc(x.year)+'</div><p class="summary">'+esc(x.summary)+'</p><div class="card-actions"><button class="read-btn" data-read="'+i+'">'+(state.read[x.id]?'Read again':'Start reading')+' →</button><span class="status">'+(state.read[x.id]?'READ':'UNREAD')+'</span></div></article>').join('');
+ $('#editionList').innerHTML=edition.map((x,i)=>'<article class="reading-card"><div class="card-top"><span class="tag">'+x.type+'</span><span class="duration">'+x.minutes+' MIN READ</span></div><h3>'+esc(x.title)+'</h3><div class="writer">by '+esc(x.author)+' · '+esc(x.year)+'</div><p class="summary">'+esc(x.summary)+'</p><div class="card-actions"><button class="read-btn" data-read="'+i+'">'+(state.read[x.id]?'Read again':'Start reading')+' →</button><span class="status">'+(state.read[x.id]?'READ':'UNREAD')+'</span></div></article>').join('');
  document.querySelectorAll('[data-read]').forEach(b=>b.onclick=()=>openReading(Number(b.dataset.read)));
 }
 function displayReading(x){
@@ -125,5 +142,5 @@ function renderHistory(){
 }
 document.querySelectorAll('.nav-item').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 $('#backHome').onclick=()=>setView('homeView');
-$('#refreshBtn').onclick=()=>{render();$('#editionList').scrollIntoView({behavior:'smooth',block:'start'})};
+$('#refreshBtn').onclick=()=>{state.refreshCount++;edition=selectEdition();save();render();$('#editionList').scrollIntoView({behavior:'smooth',block:'start'})};
 render();
