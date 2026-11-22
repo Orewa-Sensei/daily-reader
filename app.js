@@ -169,7 +169,7 @@ function render(){
  $('#editionList').innerHTML=edition.map((x,i)=>'<article class="reading-card"><div class="card-top"><span class="tag">'+x.type+'</span><span class="duration">'+x.minutes+' MIN READ</span></div><h3>'+esc(x.title)+'</h3><div class="writer">by '+esc(x.author)+' · '+esc(x.year)+'</div><p class="summary">'+esc(x.summary)+'</p><div class="card-actions"><button class="read-btn" data-read="'+i+'">'+(state.read[x.id]?'Read again':'Start reading')+' →</button><span class="status">'+(state.read[x.id]?'READ':'UNREAD')+'</span></div></article>').join('');
  document.querySelectorAll('[data-read]').forEach(b=>b.onclick=()=>openReading(Number(b.dataset.read)));
 }
-function displayReading(x){
+async function displayReading(x){
  let articleText='';
  if(x.textUrl&&!x.text){
   try{
