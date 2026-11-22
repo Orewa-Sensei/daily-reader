@@ -133,6 +133,7 @@ async function replenishReserve(){
    edition=result.queue[0];reserve=result.queue.slice(1).concat(reserve).slice(0,5);
    currentRecord={date:dateKey(today),items:edition};
    localStorage.setItem(DISCOVERY_CURRENT,JSON.stringify(currentRecord));
+   render();
   }else{
    const known=new Set(occupied.flat().map(w=>w.id));
    reserve=reserve.concat(result.queue.filter(day=>day.every(w=>!known.has(w.id)))).slice(0,5);
