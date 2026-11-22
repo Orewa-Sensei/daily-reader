@@ -55,7 +55,7 @@ async function openAccessArticles(seen){
  const map=new Map();
  all.forEach(d=>(d.results||[]).forEach(w=>{
   const id='oa-'+w.id.split('/').pop();
-  if(seen.has(id)||map.has(id)||!w.title||!w.primary_location?.landing_page_url)return;
+  if(seen.has(id)||map.has(id)||!w.title||w.language!=='en'||!w.primary_location?.landing_page_url)return;
   const authors=(w.authorships||[]).slice(0,3).map(a=>a.author?.display_name).filter(Boolean).join(', ');
   map.set(id,{id,type:'ARTICLE',title:w.title,author:authors||'Author not recorded',
    year:String(w.publication_year||'Publication year unavailable'),minutes:15,
