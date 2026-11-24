@@ -45,7 +45,7 @@ function gutenbergWork(b,type){
  const author=authors.join('; ');
  const subjects=(b.subjects||[]).slice(0,8);
  return {
-  id:'pg-'+b.id,type,title:b.title,author,year:'Project Gutenberg edition',minutes:type==='SHORT STORY'?12:15,
+  id:'pg-'+b.id,type,title:b.title,author,year:'',minutes:type==='SHORT STORY'?12:15,
   summary:'Public-domain literary text discovered from the Project Gutenberg catalogue.',
   source:'Project Gutenberg · eBook '+b.id,origin:'English-language original by an author in the app’s verified English-language author list. Bibliographic details are available in the source record.',
   url:'https://www.gutenberg.org/ebooks/'+b.id,textUrl:textFormat(b.formats),externalOnly:false,
@@ -178,6 +178,7 @@ async function cacheText(work){
  if(!work?.id)return false;
  const isGutenberg=String(work.source||'').includes('Project Gutenberg')&&/gutenberg\.org\/ebooks\/(\d+)/.test(work.url||'');
  if(work.externalOnly&&!isGutenberg)return false;
+ if(work.text)return true;
  if(!work.textUrl&&isGutenberg){
   const match=String(work.url).match(/ebooks\/(\d+)/);
   try{
@@ -187,7 +188,6 @@ async function cacheText(work){
   }catch(e){return false}
  }
  if(!work.textUrl)return false;
- if(work.text)return true;
  const cached=await getCachedText(work.id);if(cached){work.text=cached;work.externalOnly=false;return true}
  let db;
  try{
