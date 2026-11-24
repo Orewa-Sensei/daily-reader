@@ -113,4 +113,17 @@ window.DAILY_READER_CATALOGUE = [
     language:"Hindi",region:"South Asia · North India",tradition:"Early modern Hindi short fiction",period:"early 20th century",form:"Short story",
     genres:["literary fiction","historical fiction"],themes:["memory","loyalty","war","promise","love"],perspectives:["Hindi prose writer"],editorialScore:4.7,
     rightsStatus:"Original story first published in 1915. The work is public domain in India under the applicable author-life term; the host site's transcription and page terms should be checked separately."
+  },
+  {
+    id:"essay-wilde-decay-of-lying",type:"ESSAY",title:"The Decay of Lying",author:"Oscar Wilde",year:"1891",minutes:22,
+    summary:"A brilliant dialogue on art, imagination and the uneasy relationship between literature and ordinary life.",
+    source:"Project Gutenberg · Intentions, eBook 887",origin:"First published in Wilde's essay collection Intentions. This reader extracts the opening essay, The Decay of Lying, from the verified English edition.",
+    url:"https://www.gutenberg.org/ebooks/887",externalOnly:true,
+    textStart:"THE DECAY OF LYING: AN OBSERVATION",textEnd:"PEN, PENCIL, AND POISON",
+    bio:"Oscar Wilde (1854–1900) was an Irish poet, playwright and essayist, known for his wit, aesthetic criticism and literary works.",
+    bioUrl:"https://en.wikipedia.org/wiki/Oscar_Wilde",
+    sourceLanguage:"English",displayLanguage:"English",translationStatus:"original",
+    language:"English",region:"Western Europe · Ireland",tradition:"Aestheticism and Irish literary modernism",period:"late 19th century",form:"Literary dialogue / essay",
+    genres:["aesthetic criticism","dialogue"],themes:["art","imagination","realism","literature"],perspectives:["essayist","dramatist"],editorialScore:4.7,
+    rightsStatus:"Project Gutenberg lists this edition as public domain in the United States; check local law before reuse."
   }];
