@@ -20,7 +20,11 @@ const ENGLISH_AUTHOR_ALLOWLIST=[
  'carroll, lewis','j m barrie','barrie, j m','jerome k jerome','jerome, jerome k',
  'thomas hardy','hardy, thomas','elizabeth gaskell','gaskell, elizabeth','george eliot','eliot, george',
  'r l stevenson','stevenson, robert louis','joseph conrad','conrad, joseph','e m forster',
- 'forster, e m','bernard shaw','shaw, bernard','william makepeace thackeray','thackeray, william makepeace',\n 'ralph waldo emerson','emerson, ralph waldo','henry david thoreau','thoreau, henry david','john ruskin','ruskin, john',\n 'thomas babington macaulay','macaulay, thomas babington','washington irving','irving, washington','nathaniel hawthorne','hawthorne, nathaniel',\n 'ambrose bierce','bierce, ambrose','kate chopin','chopin, kate','mary shelley','shelley, mary','herman melville','melville, herman',\n 'walt whitman','whitman, walt','andrew lang','lang, andrew','oliver wendell holmes','holmes, oliver wendell','john galtworthy','galsworthy, john'
+ 'forster, e m','bernard shaw','shaw, bernard','william makepeace thackeray','thackeray, william makepeace',
+ 'ralph waldo emerson','emerson, ralph waldo','henry david thoreau','thoreau, henry david','john ruskin','ruskin, john',
+ 'thomas babington macaulay','macaulay, thomas babington','washington irving','irving, washington','nathaniel hawthorne','hawthorne, nathaniel',
+ 'ambrose bierce','bierce, ambrose','kate chopin','chopin, kate','mary shelley','shelley, mary','herman melville','melville, herman',
+ 'walt whitman','whitman, walt','andrew lang','lang, andrew','oliver wendell holmes','holmes, oliver wendell','john galtworthy','galsworthy, john'
 ];
 function authorKey(value){return norm(value).replace(/[^a-z0-9]+/g,' ').trim()}
 function knownEnglishAuthor(authors){
@@ -179,7 +183,7 @@ async function cacheText(work){
   db=await openDb();
   const response=await fetch(work.textUrl);if(!response.ok)throw new Error('Text source returned '+response.status);
   const raw=await response.text();
-  const clean=raw.replace(/^[\s\S]*?\*{3}\s*START OF (?:THE|THIS) PROJECT GUTENBERG EBOOK[\s\S]*?\*{3}\s*/i,'').replace(/\*{3}\s*END OF (?:THE|THIS) PROJECT GUTENBERG EBOOK[\s\S]*$/i,'').trim()
+  const clean=raw.replace(/^[\s\S]*?\*{3}\s*START OF (?:THE|THIS) PROJECT GUTENBERG EBOOK[\s\S]*?\*{3}\s*/i,'').replace(/\*{3}\s*END OF (?:THE|THIS) PROJECT GUTENBERG EBOOK[\s\S]*$/i,'').trim();
   if(clean.length<500)throw new Error('Text source did not return a complete readable work');
   await new Promise((resolve,reject)=>{const tx=db.transaction('works','readwrite');tx.objectStore('works').put({id:work.id,text:clean,savedAt:Date.now(),sourceUrl:work.url});tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});
   work.text=clean;return true;
