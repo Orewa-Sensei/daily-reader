@@ -151,8 +151,16 @@ function persistEdition(){
 async function cacheEditionSet(){
  const works=[...edition,...reserve.flat()];
  const unique=[...new Map(works.map(w=>[w.id,w])).values()];
- const results=await Promise.allSettled(unique.map(w=>DailyReaderDiscovery.cacheText(w)));
- window.__offlineCacheDiagnostics={works:unique.length,cached:results.filter(x=>x.status==='fulfilled'&&x.value).length,externalOnly:unique.filter(w=>w.externalOnly).length};
+ const results=new Array(unique.length);let cursor=0;
+ const workers=Array.from({length:Math.min(3,unique.length)},async()=>{
+  while(cursor<unique.length){
+   const index=cursor++;
+   try{results[index]=await DailyReaderDiscovery.cacheText(unique[index])}
+   catch(error){results[index]=false}
+  }
+ });
+ await Promise.all(workers);
+ window.__offlineCacheDiagnostics={works:unique.length,cached:results.filter(Boolean).length,externalOnly:unique.filter(w=>w.externalOnly).length};
 }
 async function replenishReserve(){
  if(!navigator.onLine||reserve.length>=5)return;
@@ -278,3 +286,4 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkDayRo
 window.addEventListener('focus',checkDayRollover);
 window.addEventListener('online',()=>{updateDiscoveryNote();replenishReserve()});
 window.addEventListener('offline',updateDiscoveryNote);
+setInterval(checkDayRollover,60000);
