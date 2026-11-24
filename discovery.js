@@ -175,18 +175,29 @@ async function getCachedText(id){
  catch(e){return null}finally{db?.close()}
 }
 async function cacheText(work){
- if(!work?.id||!work.textUrl||work.externalOnly)return false;
+ if(!work?.id)return false;
+ const isGutenberg=String(work.source||'').includes('Project Gutenberg')&&/gutenberg\\.org\\/ebooks\\/(\\d+)/.test(work.url||'');
+ if(work.externalOnly&&!isGutenberg)return false;
+ if(!work.textUrl&&isGutenberg){
+  const match=String(work.url).match(/ebooks\\/(\\d+)/);
+  try{
+   const metadata=await requestJSON('https://gutendex.com/books/'+match[1]);
+   work.textUrl=textFormat(metadata.formats);
+   if(work.textUrl)work.externalOnly=false;
+  }catch(e){return false}
+ }
+ if(!work.textUrl)return false;
  if(work.text)return true;
- const cached=await getCachedText(work.id);if(cached){work.text=cached;return true}
+ const cached=await getCachedText(work.id);if(cached){work.text=cached;work.externalOnly=false;return true}
  let db;
  try{
   db=await openDb();
   const response=await fetch(work.textUrl);if(!response.ok)throw new Error('Text source returned '+response.status);
   const raw=await response.text();
-  const clean=raw.replace(/^[\s\S]*?\*{3}\s*START OF (?:THE|THIS) PROJECT GUTENBERG EBOOK[\s\S]*?\*{3}\s*/i,'').replace(/\*{3}\s*END OF (?:THE|THIS) PROJECT GUTENBERG EBOOK[\s\S]*$/i,'').trim();
+  const clean=raw.replace(/^[\\s\\S]*?\\*{3}\\s*START OF (?:THE|THIS) PROJECT GUTENBERG EBOOK[\\s\\S]*?\\*{3}\\s*/i,'').replace(/\\*{3}\\s*END OF (?:THE|THIS) PROJECT GUTENBERG EBOOK[\\s\\S]*$/i,'').trim();
   if(clean.length<500)throw new Error('Text source did not return a complete readable work');
   await new Promise((resolve,reject)=>{const tx=db.transaction('works','readwrite');tx.objectStore('works').put({id:work.id,text:clean,savedAt:Date.now(),sourceUrl:work.url});tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});
-  work.text=clean;return true;
+  work.text=clean;work.externalOnly=false;return true;
  }catch(e){work.externalOnly=true;work.cacheError=String(e);return false}
  finally{db?.close()}
 }
