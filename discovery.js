@@ -22,9 +22,10 @@ const ENGLISH_AUTHOR_ALLOWLIST=[
  'r l stevenson','stevenson, robert louis','joseph conrad','conrad, joseph','e m forster',
  'forster, e m','bernard shaw','shaw, bernard','william makepeace thackeray','thackeray, william makepeace'
 ];
+function authorKey(value){return norm(value).replace(/[^a-z0-9]+/g,' ').trim()}
 function knownEnglishAuthor(authors){
- const names=(authors||[]).map(a=>norm(a.name));
- return names.some(n=>ENGLISH_AUTHOR_ALLOWLIST.some(a=>n.includes(a)||a.includes(n)&&n.length>5));
+ const names=(authors||[]).map(a=>authorKey(a.name));
+ return names.some(n=>ENGLISH_AUTHOR_ALLOWLIST.some(a=>{const k=authorKey(a);return n===k||n.includes(k)||k.includes(n)&&n.length>5}));
 }
 function textFormat(formats){
  return formats?.['text/plain; charset=utf-8']||formats?.['text/plain; charset=us-ascii']||formats?.['text/plain; charset=iso-8859-1']||formats?.['text/plain']||null;
@@ -87,18 +88,27 @@ async function openAlexSearch(seen){
  }
  return shuffle([...map.values()],hash('openalex'+Date.now()));
 }
+function fingerprint(work){
+ return norm(String(work?.title||'')+'|'+String(work?.author||'')).replace(/[^a-z0-9]+/g,' ').trim();
+}
 function seenIds(history,occupied){
- const ids=new Set();
- for(const h of history||[]){const id=h.id||h.reading?.id;if(id)ids.add(id)}
- for(const group of occupied||[])for(const w of group||[])if(w?.id)ids.add(w.id);
+ const ids=new Set(),fingerprints=new Set();
+ for(const h of history||[]){
+  const x=h.reading||h,id=h.id||x.id;
+  if(id)ids.add(id);
+  const fp=fingerprint(x);if(fp&&fp!=='|')fingerprints.add(fp);
+ }
+ for(const group of occupied||[])for(const w of group||[])if(w?.id){ids.add(w.id);const fp=fingerprint(w);if(fp)fingerprints.add(fp)}
+ ids.fingerprints=fingerprints;
  return ids;
 }
 function uniquePool(items,seen,type){
- const map=new Map();
+ const map=new Map(),fingerprints=seen.fingerprints||new Set();
  for(const w of items||[]){
   if(!w||w.type!==type||!w.id||seen.has(w.id)||map.has(w.id))continue;
   if(!global.DailyReaderEngine?.validWork(w))continue;
-  map.set(w.id,w);
+  const fp=fingerprint(w);if(!fp||fingerprints.has(fp))continue;
+  fingerprints.add(fp);map.set(w.id,w);
  }
  return [...map.values()];
 }
