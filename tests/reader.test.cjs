@@ -98,3 +98,16 @@ test('curated translations require an identifiable published translator',()=>{
  assert.ok(eligible.some(w=>w.id==='story-guleri-usne-kaha-tha'&&w.displayLanguage==='Hindi'&&w.hindiOriginal===true));
  assert.ok(!eligible.some(w=>w.id==='story-tagore-postmaster'));
 });
+
+test('Gutenberg extraction trims anthology to the selected essay section',()=>{
+ const engine=engineContext();
+ const context={window:{DailyReaderEngine:engine},localStorage:{getItem(){return null},setItem(){}},AbortController,setTimeout,clearTimeout,fetch:async()=>({ok:true,json:async()=>({results:[]})})};
+ vm.runInNewContext(discoverySource,context);
+ const d=context.window.DailyReaderDiscovery;
+ const raw='Header\\n*** START OF THE PROJECT GUTENBERG EBOOK TEST ***\\nTHE DECAY OF LYING: AN OBSERVATION\\n'+
+  'Cyril and Vivian discuss art and imagination. '.repeat(30)+'\\nPEN, PENCIL, AND POISON\\nNext essay begins here.\\n*** END OF THE PROJECT GUTENBERG EBOOK TEST ***';
+ const text=d.cleanGutenbergText(raw,{textStart:'THE DECAY OF LYING: AN OBSERVATION',textEnd:'PEN, PENCIL, AND POISON'});
+ assert.ok(text.startsWith('THE DECAY OF LYING'));
+ assert.ok(!text.includes('PEN, PENCIL, AND POISON'));
+ assert.ok(!text.includes('Next essay'));
+});
