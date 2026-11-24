@@ -226,15 +226,8 @@ function render(){
 }
 async function displayReading(x){
  let articleText='';
- if(!x.text&&x.id){x.text=await DailyReaderDiscovery.getCachedText(x.id)}
- if(x.textUrl&&!x.text){
-  try{
-   const response=await fetch(x.textUrl);if(!response.ok)throw new Error('Text source unavailable');
-   let raw=await response.text();
-   raw=raw.replace(/^.*?\\*\\*\\* START OF (?:THE|THIS) PROJECT GUTENBERG EBOOK[^\\n]*\\n/i,'').replace(/\\*\\*\\* END OF (?:THE|THIS) PROJECT GUTENBERG EBOOK[\\s\\S]*$/i,'');
-   x.text=raw.slice(0,180000);x.externalOnly=false;
-  }catch(error){x.externalOnly=true}
- }
+ if(!x.text&&x.id)x.text=await DailyReaderDiscovery.getCachedText(x.id);
+ if(!x.text&&x.textUrl)await DailyReaderDiscovery.cacheText(x);
  articleText=x.externalOnly
  ? '<div class="external-reading"><p>This reading is available from '+esc(x.source||'its original publisher')+'. Open the source edition to read the complete work.</p><a class="read-btn external-link" href="'+esc(x.url)+'" target="_blank" rel="noopener">Read original ↗</a></div>'
  : '<div class="reader-body">'+paragraphs(x.text||'The full text could not be loaded. Open the original source edition below.')+'</div>';
