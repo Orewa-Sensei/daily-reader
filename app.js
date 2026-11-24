@@ -168,12 +168,13 @@ async function replenishReserve(){
  }catch(error){window.__discoveryError=String(error);updateDiscoveryNote()}
 }
 async function bootstrapLiveEdition(){
- if(!hadCurrent&&reserve.length===0&&navigator.onLine){
+ if(!hadCurrent&&navigator.onLine){
   try{
-   const result=await DailyReaderDiscovery.discover(discoveryHistory(),[edition]);
+   const result=await DailyReaderDiscovery.discover(discoveryHistory(),[edition,...reserve]);
+   window.__discoveryDiagnostics=result.diagnostics;
    if(result.queue.length){
-    edition=result.queue[0];reserve=result.queue.slice(1,5);
-    window.__discoveryDiagnostics=result.diagnostics;
+    edition=result.queue[0];
+    reserve=reserve.concat(result.queue.slice(1)).slice(0,5);
     persistEdition();render();
    }
   }catch(error){window.__discoveryError=String(error)}
@@ -181,6 +182,7 @@ async function bootstrapLiveEdition(){
  markPresented(edition);
  await cacheEditionSet();
  await replenishReserve();
+ updateDiscoveryNote();
 }
 function updateDiscoveryNote(){
  const note=document.querySelector('.note');if(!note)return;
@@ -269,3 +271,10 @@ $('#backHome').onclick=()=>setView('homeView');
 $('#refreshBtn').onclick=async()=>{state.refreshCount++;$('#refreshBtn').disabled=true;$('#refreshBtn').textContent='Searching…';await discoverFreshEdition();$('#refreshBtn').disabled=false;$('#refreshBtn').textContent='↻ Refresh';save();$('#editionList').scrollIntoView({behavior:'smooth',block:'start'})};
 render();
 bootstrapLiveEdition();
+function checkDayRollover(){
+ if(dateKey(new Date())!==dateKey(today))window.location.reload();
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkDayRollover()});
+window.addEventListener('focus',checkDayRollover);
+window.addEventListener('online',()=>{updateDiscoveryNote();replenishReserve()});
+window.addEventListener('offline',updateDiscoveryNote);
