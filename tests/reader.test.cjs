@@ -95,5 +95,6 @@ test('curated translations require an identifiable published translator',()=>{
  assert.ok(eligible.some(w=>w.id==='essay-tolstoy-art'));
  assert.ok(eligible.some(w=>w.id==='story-chekhov-misery'));
  assert.ok(eligible.some(w=>w.id==='story-akutagawa-spider-thread'));
+ assert.ok(eligible.some(w=>w.id==='story-guleri-usne-kaha-tha'&&w.displayLanguage==='Hindi'&&w.hindiOriginal===true));
  assert.ok(!eligible.some(w=>w.id==='story-tagore-postmaster'));
 });
