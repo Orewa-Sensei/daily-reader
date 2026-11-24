@@ -238,11 +238,14 @@ async function displayReading(x){
  toggle.onclick=()=>{const open=bio.hidden;bio.hidden=!open;toggle.setAttribute('aria-expanded',String(open));toggle.querySelector('span').textContent=open?'−':'＋'};
  setView('readerView');
 }
+function historySnapshot(work){
+ const snapshot={...work};delete snapshot.text;delete snapshot.textUrl;delete snapshot.cacheError;return snapshot;
+}
 function openReading(i){
- const x=edition[i];state.read[x.id]=true;
+ const x=edition[i];if(!x)return;state.read[x.id]=true;
  const existing=state.history.find(h=>h.id===x.id);
- if(!existing)state.history.unshift({id:x.id,readAt:new Date().toISOString(),reading:{...x}});
- else {existing.lastReadAt=new Date().toISOString();existing.reading={...x}}
+ if(!existing)state.history.unshift({id:x.id,readAt:new Date().toISOString(),reading:historySnapshot(x)});
+ else {existing.lastReadAt=new Date().toISOString();existing.reading=historySnapshot(x)}
  save();render();displayReading(x);
 }
 function openHistory(i){
