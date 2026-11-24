@@ -3,7 +3,7 @@
    from original-work rights; entries with unresolved rights remain external-only. */
 window.DAILY_READER_CATALOGUE = [
   {
-    id:"essay-tolstoy-art",type:"ESSAY",title:"What Is Art?",author:"Leo Tolstoy",year:"1897 (English edition 1904)",minutes:18,
+    id:"essay-tolstoy-art",type:"ESSAY",title:"What Is Art?",author:"Leo Tolstoy",year:"1897 (English edition 1904)",minutes:18,fullWork:true,
     summary:"Tolstoy's influential inquiry into what art communicates, whom it reaches and what makes an experience genuinely artistic.",
     source:"Project Gutenberg · eBook 64908",origin:"Russian original; English translation by Aylmer Maude, published in the 1904 English edition. The translation is separately credited in the catalogue record.",
     url:"https://www.gutenberg.org/ebooks/64908",externalOnly:true,
