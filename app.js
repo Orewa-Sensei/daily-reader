@@ -114,7 +114,13 @@ function selectEdition(){
  return result.items;
 }
 const DISCOVERY_CURRENT='dailyReader.currentEdition.v2';
-let reserve=DailyReaderDiscovery.loadQueue();
+state.presented=Array.isArray(state.presented)?state.presented:[];
+const excludedFromReserve=new Set([
+ ...state.history.map(h=>h.id||h.reading?.id).filter(Boolean),
+ ...state.presented.map(x=>typeof x==='string'?x:x.id).filter(Boolean),
+ ...Object.keys(state.saved||{}).filter(id=>state.saved[id])
+]);
+let reserve=DailyReaderDiscovery.loadQueue().filter(day=>day.every(w=>!excludedFromReserve.has(w.id)));
 let currentRecord=null;
 try{currentRecord=JSON.parse(localStorage.getItem(DISCOVERY_CURRENT)||'null')}catch(e){}
 const hadCurrent=!!(currentRecord&&currentRecord.date===dateKey(today)&&Array.isArray(currentRecord.items)&&currentRecord.items.length===3);
@@ -124,7 +130,6 @@ if(!hadCurrent){
  localStorage.setItem(DISCOVERY_CURRENT,JSON.stringify(currentRecord));
  DailyReaderDiscovery.saveQueue(reserve);
 }
-state.presented=Array.isArray(state.presented)?state.presented:[];
 function markPresented(items){
  const stamp=new Date().toISOString();
  const known=new Set(state.presented.map(x=>typeof x==='string'?x:x.id));
