@@ -101,4 +101,16 @@ window.DAILY_READER_CATALOGUE = [
     language:"English",region:"East Asia · Japan",tradition:"Contemporary cultural criticism",period:"21st century",form:"Digital essay",genres:["cultural history","criticism"],themes:["Japan","material culture","minimalism","consumer culture"],perspectives:["writer","translator"],editorialScore:4.3,
     rightsStatus:"Copyright remains with the publisher/author; link out only."
   }
-];
+,
+  {
+    id:"story-guleri-usne-kaha-tha",type:"SHORT STORY",title:"उसने कहा था",author:"Chandradhar Sharma Guleri",year:"1915",minutes:20,
+    summary:"A Hindi story set between an early encounter in Amritsar and the First World War, shaped by memory, loyalty and a promise.",
+    source:"Hindi Samay · Full Hindi text",origin:"Published in Saraswati in 1915. Hindi-language literary and university sources identify this as Guleri's celebrated Hindi story.",
+    url:"https://www.hindisamay.com/content/6883/1/%E0%A4%9A%E0%A4%82%E0%A4%A6%E0%A5%8D%E0%A4%B0%E0%A4%A7%E0%A4%B0-%E0%A4%B6%E0%A4%B0%E0%A5%8D%E0%A4%AE%E0%A4%BE-%E0%A4%97%E0%A5%81%E0%A4%B2%E0%A5%87%E0%A4%B0%E0%A5%80-%E0%A4%95%E0%A4%B9%E0%A4%BE%E0%A4%A8%E0%A4%BF%E0%A4%AF%E0%A4%BE%E0%A4%81-%E0%A4%89%E0%A4%B8%E0%A4%A8%E0%A5%87-%E0%A4%95%E0%A4%B9%E0%A4%BE-%E0%A4%A5%E0%A4%BE.cspx",
+    externalOnly:true,bio:"Chandradhar Sharma Guleri (1883–1922) was a Hindi prose writer, scholar and editor, best known for the short story Usne Kaha Tha.",
+    bioUrl:"https://www.hindwi.org/poets/chandradhar-sharma-guleri/story",
+    sourceLanguage:"Hindi",displayLanguage:"Hindi",translationStatus:"original",hindiOriginal:true,
+    language:"Hindi",region:"South Asia · North India",tradition:"Early modern Hindi short fiction",period:"early 20th century",form:"Short story",
+    genres:["literary fiction","historical fiction"],themes:["memory","loyalty","war","promise","love"],perspectives:["Hindi prose writer"],editorialScore:4.7,
+    rightsStatus:"Original story first published in 1915. The work is public domain in India under the applicable author-life term; the host site's transcription and page terms should be checked separately."
+  }];
