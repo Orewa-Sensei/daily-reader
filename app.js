@@ -113,59 +113,103 @@ function selectEdition(){
  window.__editionDiagnostics=result.diagnostics;
  return result.items;
 }
-const DISCOVERY_CURRENT='dailyReader.currentEdition.v1';
+const DISCOVERY_CURRENT='dailyReader.currentEdition.v2';
 let reserve=DailyReaderDiscovery.loadQueue();
 let currentRecord=null;
 try{currentRecord=JSON.parse(localStorage.getItem(DISCOVERY_CURRENT)||'null')}catch(e){}
-let edition=(currentRecord&&currentRecord.date===dateKey(today)&&Array.isArray(currentRecord.items))
- ? currentRecord.items : (reserve.shift()||selectEdition());
-if(!currentRecord||currentRecord.date!==dateKey(today)){
- localStorage.setItem(DISCOVERY_CURRENT,JSON.stringify({date:dateKey(today),items:edition}));
+const hadCurrent=!!(currentRecord&&currentRecord.date===dateKey(today)&&Array.isArray(currentRecord.items)&&currentRecord.items.length===3);
+let edition=hadCurrent?currentRecord.items:(reserve.shift()||selectEdition());
+if(!hadCurrent){
+ currentRecord={date:dateKey(today),items:edition};
+ localStorage.setItem(DISCOVERY_CURRENT,JSON.stringify(currentRecord));
  DailyReaderDiscovery.saveQueue(reserve);
+}
+state.presented=Array.isArray(state.presented)?state.presented:[];
+function markPresented(items){
+ const stamp=new Date().toISOString();
+ const known=new Set(state.presented.map(x=>typeof x==='string'?x:x.id));
+ for(const w of items||[])if(w?.id&&!known.has(w.id)){state.presented.push({id:w.id,seenAt:stamp});known.add(w.id)}
+ if(state.presented.length>1200)state.presented=state.presented.slice(-1200);
+ save();
+}
+function discoveryHistory(){
+ return state.history.concat(state.presented.map(x=>typeof x==='string'?{id:x}:{id:x.id,seenAt:x.seenAt}));
+}
+function persistEdition(){
+ currentRecord={date:dateKey(today),items:edition};
+ localStorage.setItem(DISCOVERY_CURRENT,JSON.stringify(currentRecord));
+ DailyReaderDiscovery.saveQueue(reserve);
+ markPresented(edition);
+}
+async function cacheEditionSet(){
+ const works=[...edition,...reserve.flat()];
+ const unique=[...new Map(works.map(w=>[w.id,w])).values()];
+ const results=await Promise.allSettled(unique.map(w=>DailyReaderDiscovery.cacheText(w)));
+ window.__offlineCacheDiagnostics={works:unique.length,cached:results.filter(x=>x.status==='fulfilled'&&x.value).length,externalOnly:unique.filter(w=>w.externalOnly).length};
 }
 async function replenishReserve(){
  if(!navigator.onLine||reserve.length>=5)return;
  try{
-  const needsLiveToday=!(currentRecord&&currentRecord.date===dateKey(today));
-  const occupied=needsLiveToday?[...reserve]:[edition,...reserve];
-  const result=await DailyReaderDiscovery.discover(state.history,occupied);
-  if(needsLiveToday&&result.queue.length){
-   edition=result.queue[0];reserve=result.queue.slice(1).concat(reserve).slice(0,5);
-   currentRecord={date:dateKey(today),items:edition};
-   localStorage.setItem(DISCOVERY_CURRENT,JSON.stringify(currentRecord));
-   render();
-  }else{
-   const known=new Set(occupied.flat().map(w=>w.id));
-   reserve=reserve.concat(result.queue.filter(day=>day.every(w=>!known.has(w.id)))).slice(0,5);
-  }
+  const result=await DailyReaderDiscovery.discover(discoveryHistory(),[edition,...reserve]);
+  const existing=new Set([edition,...reserve].flat().map(w=>w.id));
+  const additions=result.queue.filter(day=>day.every(w=>!existing.has(w.id)));
+  reserve=reserve.concat(additions).slice(0,5);
   DailyReaderDiscovery.saveQueue(reserve);
-  await Promise.all([edition,...reserve].flat().map(w=>DailyReaderDiscovery.cacheText(w)));
   window.__discoveryDiagnostics=result.diagnostics;
-  const note=document.querySelector('.note');
-  if(note)note.textContent='Live discovery · '+result.diagnostics.essays+' essays, '+result.diagnostics.stories+' stories and '+result.diagnostics.articles+' articles found. '+reserve.length+' future editions reserved.';
- }catch(error){window.__discoveryError=String(error)}
+  await cacheEditionSet();
+  updateDiscoveryNote();
+ }catch(error){window.__discoveryError=String(error);updateDiscoveryNote()}
+}
+async function bootstrapLiveEdition(){
+ if(!hadCurrent&&reserve.length===0&&navigator.onLine){
+  try{
+   const result=await DailyReaderDiscovery.discover(discoveryHistory(),[edition]);
+   if(result.queue.length){
+    edition=result.queue[0];reserve=result.queue.slice(1,5);
+    window.__discoveryDiagnostics=result.diagnostics;
+    persistEdition();render();
+   }
+  }catch(error){window.__discoveryError=String(error)}
+ }
+ markPresented(edition);
+ await cacheEditionSet();
+ await replenishReserve();
+}
+function updateDiscoveryNote(){
+ const note=document.querySelector('.note');if(!note)return;
+ const d=window.__discoveryDiagnostics;
+ const cached=window.__offlineCacheDiagnostics;
+ if(!navigator.onLine)note.textContent='Offline edition · '+reserve.length+' future editions ready.';
+ else if(d)note.textContent='Live discovery · '+d.candidateCounts.ESSAY+' essays, '+d.candidateCounts['SHORT STORY']+' stories and '+d.candidateCounts.ARTICLE+' articles eligible · '+reserve.length+'/5 future editions reserved'+(cached?' · '+cached.cached+' readings cached offline':'');
+ else note.textContent='Your reading shelf is ready. Live discovery will fill the five-day reserve when sources respond.';
 }
 async function discoverFreshEdition(){
- if(!navigator.onLine){if(reserve.length){edition=reserve.shift();DailyReaderDiscovery.saveQueue(reserve);localStorage.setItem(DISCOVERY_CURRENT,JSON.stringify({date:dateKey(today),items:edition}));render();return}return}
+ markPresented(edition);
+ if(!navigator.onLine){
+  if(reserve.length){edition=reserve.shift();persistEdition();render();updateDiscoveryNote();return}
+  updateDiscoveryNote();return;
+ }
  const note=document.querySelector('.note');if(note)note.textContent='Searching literary sources for a fresh edition…';
  try{
-  const result=await DailyReaderDiscovery.discover(state.history,[edition,...reserve]);
-  const next=result.queue[0];
-  if(next&&next.length===3){
-   edition=next;
-   reserve=result.queue.slice(1).concat(reserve).slice(0,5);
-   localStorage.setItem(DISCOVERY_CURRENT,JSON.stringify({date:dateKey(today),items:edition}));
-   DailyReaderDiscovery.saveQueue(reserve);
-   await Promise.all([edition,...reserve].flat().map(w=>DailyReaderDiscovery.cacheText(w)));
-   window.__discoveryDiagnostics=result.diagnostics;
-   render();
-   if(note)note.textContent='Freshly discovered · '+reserve.length+' future editions reserved.';
+  const result=await DailyReaderDiscovery.discover(discoveryHistory(),[edition,...reserve]);
+  window.__discoveryDiagnostics=result.diagnostics;
+  if(result.queue.length){
+   edition=result.queue[0];
+   reserve=reserve.concat(result.queue.slice(1)).slice(0,5);
+   persistEdition();render();
+   await cacheEditionSet();
+   if(note)note.textContent='Fresh live edition · '+reserve.length+'/5 future editions reserved.';
   }else if(reserve.length){
-   edition=reserve.shift();DailyReaderDiscovery.saveQueue(reserve);render();
-   if(note)note.textContent='Using your preloaded reserve · live sources returned too few eligible works.';
-  }else if(note)note.textContent='Could not find enough new verified readings. Your current edition is unchanged.';
- }catch(error){window.__discoveryError=String(error);if(note)note.textContent='Live discovery unavailable. Your saved reading reserve remains available.'}
- replenishReserve();
+   edition=reserve.shift();persistEdition();render();
+   if(note)note.textContent='Live sources had no additional eligible works. Using your preloaded edition.';
+   await cacheEditionSet();
+  }else if(note)note.textContent='No new verified edition was found. Your current edition remains unchanged.';
+ }catch(error){
+  window.__discoveryError=String(error);
+  if(reserve.length){edition=reserve.shift();persistEdition();render();if(note)note.textContent='Live discovery unavailable. Switched to your offline reserve.'}
+  else if(note)note.textContent='Live discovery unavailable; no reserve is available yet.';
+ }
+ await replenishReserve();
 }
 document.querySelector('#dateLabel').textContent=today.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'}).toUpperCase()+' · DAILY EDITION';
 function save(){localStorage.setItem('dailyReader.v2',JSON.stringify(state))}
@@ -221,4 +265,4 @@ document.querySelectorAll('.nav-item').forEach(b=>b.onclick=()=>setView(b.datase
 $('#backHome').onclick=()=>setView('homeView');
 $('#refreshBtn').onclick=async()=>{state.refreshCount++;$('#refreshBtn').disabled=true;$('#refreshBtn').textContent='Searching…';await discoverFreshEdition();$('#refreshBtn').disabled=false;$('#refreshBtn').textContent='↻ Refresh';save();$('#editionList').scrollIntoView({behavior:'smooth',block:'start'})};
 render();
-replenishReserve();
+bootstrapLiveEdition();
