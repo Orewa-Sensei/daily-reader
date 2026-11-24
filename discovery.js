@@ -140,7 +140,7 @@ async function discover(history,occupied){
  const essays=results[0].status==='fulfilled'?results[0].value:[];
  const stories=results[1].status==='fulfilled'?results[1].value:[];
  const articles=results[2].status==='fulfilled'?results[2].value:[];
- const curated=[...(global.DAILY_READER_CATALOGUE||[]),...(global.DAILY_READER_STATIC||[])];
+ const curated=[...(global.DAILY_READER_CATALOGUE||[]),...(global.DAILY_READER_STATIC||[])].map(w=>({...w,verified:true,sourceUrl:w.sourceUrl||w.url}));
  const pools={
   ESSAY:uniquePool(essays.concat(curated),seen,'ESSAY'),
   'SHORT STORY':uniquePool(stories.concat(curated),seen,'SHORT STORY'),
