@@ -64,7 +64,7 @@ test('live discovery excludes read and reserved entries and rejects unknown-lang
   localStorage:{getItem(){return null},setItem(){}},AbortController,setTimeout,clearTimeout,fetch};
  vm.runInNewContext(discoverySource,context);
  const d=context.window.DailyReaderDiscovery;
- const result=await d.discover([{id:'e0'}],[[staticWorks[1]]]);
+ const result=await d.discover([{id:'e0'}],[[staticWorks[5]]]);
  assert.ok(result.queue.length>0);
  const ids=result.queue.flat().map(x=>x.id);
  assert.ok(!ids.includes('e0'));
