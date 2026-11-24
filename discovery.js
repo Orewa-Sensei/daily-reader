@@ -161,7 +161,7 @@ async function cacheText(work){
   db=await openDb();
   const response=await fetch(work.textUrl);if(!response.ok)throw new Error('Text source returned '+response.status);
   const raw=await response.text();
-  const clean=raw.replace(/^.*?\\*\\*\\* START OF (?:THE|THIS) PROJECT GUTENBERG EBOOK[^\\n]*\\n/i,'').replace(/\\*\\*\\* END OF (?:THE|THIS) PROJECT GUTENBERG EBOOK[\\s\\S]*$/i,'').trim();
+  const clean=raw.replace(/^[\s\S]*?\*{3}\s*START OF (?:THE|THIS) PROJECT GUTENBERG EBOOK[\s\S]*?\*{3}\s*/i,'').replace(/\*{3}\s*END OF (?:THE|THIS) PROJECT GUTENBERG EBOOK[\s\S]*$/i,'').trim()
   if(clean.length<500)throw new Error('Text source did not return a complete readable work');
   await new Promise((resolve,reject)=>{const tx=db.transaction('works','readwrite');tx.objectStore('works').put({id:work.id,text:clean,savedAt:Date.now(),sourceUrl:work.url});tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});
   work.text=clean;return true;
