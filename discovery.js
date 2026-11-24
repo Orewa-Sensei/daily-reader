@@ -179,6 +179,7 @@ async function cacheText(work){
  const isGutenberg=String(work.source||'').includes('Project Gutenberg')&&/gutenberg\.org\/ebooks\/(\d+)/.test(work.url||'');
  if(work.externalOnly&&!isGutenberg)return false;
  if(work.text)return true;
+ const cached=await getCachedText(work.id);if(cached){work.text=cached;work.externalOnly=false;return true}
  if(!work.textUrl&&isGutenberg){
   const match=String(work.url).match(/ebooks\/(\d+)/);
   try{
@@ -188,7 +189,6 @@ async function cacheText(work){
   }catch(e){return false}
  }
  if(!work.textUrl)return false;
- const cached=await getCachedText(work.id);if(cached){work.text=cached;work.externalOnly=false;return true}
  let db;
  try{
   db=await openDb();
