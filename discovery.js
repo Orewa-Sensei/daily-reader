@@ -174,6 +174,12 @@ async function getCachedText(id){
  let db;try{db=await openDb();return await new Promise((resolve,reject)=>{const r=db.transaction('works','readonly').objectStore('works').get(id);r.onsuccess=()=>resolve(r.result?.text||null);r.onerror=()=>reject(r.error)})}
  catch(e){return null}finally{db?.close()}
 }
+function cleanGutenbergText(raw,work){
+ let clean=String(raw||'').replace(/^[\s\S]*?\*{3}\s*START OF (?:THE|THIS) PROJECT GUTENBERG EBOOK[\s\S]*?\*{3}\s*/i,'').replace(/\*{3}\s*END OF (?:THE|THIS) PROJECT GUTENBERG EBOOK[\s\S]*$/i,'').trim();
+ if(work?.textStart){const start=clean.toLowerCase().indexOf(String(work.textStart).toLowerCase());if(start>=0)clean=clean.slice(start)}
+ if(work?.textEnd){const end=clean.toLowerCase().indexOf(String(work.textEnd).toLowerCase());if(end>0)clean=clean.slice(0,end)}
+ return clean;
+}
 async function cacheText(work){
  if(!work?.id)return false;
  const isGutenberg=String(work.source||'').includes('Project Gutenberg')&&/gutenberg\.org\/ebooks\/(\d+)/.test(work.url||'');
