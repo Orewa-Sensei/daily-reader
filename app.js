@@ -133,7 +133,9 @@ function markPresented(items){
  save();
 }
 function discoveryHistory(){
- return state.history.concat(state.presented.map(x=>typeof x==='string'?{id:x}:{id:x.id,seenAt:x.seenAt}));
+ const presented=state.presented.map(x=>typeof x==='string'?{id:x}:{id:x.id,seenAt:x.seenAt});
+ const saved=Object.keys(state.saved||{}).filter(id=>state.saved[id]).map(id=>({id}));
+ return state.history.concat(presented,saved);
 }
 function persistEdition(){
  currentRecord={date:dateKey(today),items:edition};
