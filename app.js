@@ -151,8 +151,16 @@ function persistEdition(){
 async function cacheEditionSet(){
  const works=[...edition,...reserve.flat()];
  const unique=[...new Map(works.map(w=>[w.id,w])).values()];
- const results=await Promise.allSettled(unique.map(w=>DailyReaderDiscovery.cacheText(w)));
- window.__offlineCacheDiagnostics={works:unique.length,cached:results.filter(x=>x.status==='fulfilled'&&x.value).length,externalOnly:unique.filter(w=>w.externalOnly).length};
+ const results=new Array(unique.length);let cursor=0;
+ const workers=Array.from({length:Math.min(3,unique.length)},async()=>{
+  while(cursor<unique.length){
+   const index=cursor++;
+   try{results[index]=await DailyReaderDiscovery.cacheText(unique[index])}
+   catch(error){results[index]=false}
+  }
+ });
+ await Promise.all(workers);
+ window.__offlineCacheDiagnostics={works:unique.length,cached:results.filter(Boolean).length,externalOnly:unique.filter(w=>w.externalOnly).length};
 }
 async function replenishReserve(){
  if(!navigator.onLine||reserve.length>=5)return;
@@ -168,12 +176,13 @@ async function replenishReserve(){
  }catch(error){window.__discoveryError=String(error);updateDiscoveryNote()}
 }
 async function bootstrapLiveEdition(){
- if(!hadCurrent&&reserve.length===0&&navigator.onLine){
+ if(!hadCurrent&&navigator.onLine){
   try{
-   const result=await DailyReaderDiscovery.discover(discoveryHistory(),[edition]);
+   const result=await DailyReaderDiscovery.discover(discoveryHistory(),[edition,...reserve]);
+   window.__discoveryDiagnostics=result.diagnostics;
    if(result.queue.length){
-    edition=result.queue[0];reserve=result.queue.slice(1,5);
-    window.__discoveryDiagnostics=result.diagnostics;
+    edition=result.queue[0];
+    reserve=reserve.concat(result.queue.slice(1)).slice(0,5);
     persistEdition();render();
    }
   }catch(error){window.__discoveryError=String(error)}
@@ -181,6 +190,7 @@ async function bootstrapLiveEdition(){
  markPresented(edition);
  await cacheEditionSet();
  await replenishReserve();
+ updateDiscoveryNote();
 }
 function updateDiscoveryNote(){
  const note=document.querySelector('.note');if(!note)return;
@@ -269,3 +279,11 @@ $('#backHome').onclick=()=>setView('homeView');
 $('#refreshBtn').onclick=async()=>{state.refreshCount++;$('#refreshBtn').disabled=true;$('#refreshBtn').textContent='Searching…';await discoverFreshEdition();$('#refreshBtn').disabled=false;$('#refreshBtn').textContent='↻ Refresh';save();$('#editionList').scrollIntoView({behavior:'smooth',block:'start'})};
 render();
 bootstrapLiveEdition();
+function checkDayRollover(){
+ if(dateKey(new Date())!==dateKey(today))window.location.reload();
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkDayRollover()});
+window.addEventListener('focus',checkDayRollover);
+window.addEventListener('online',()=>{updateDiscoveryNote();replenishReserve()});
+window.addEventListener('offline',updateDiscoveryNote);
+setInterval(checkDayRollover,60000);

@@ -3,7 +3,7 @@
    from original-work rights; entries with unresolved rights remain external-only. */
 window.DAILY_READER_CATALOGUE = [
   {
-    id:"essay-tolstoy-art",type:"ESSAY",title:"What Is Art?",author:"Leo Tolstoy",year:"1897 (English edition 1904)",minutes:18,
+    id:"essay-tolstoy-art",type:"ESSAY",title:"What Is Art?",author:"Leo Tolstoy",year:"1897 (English edition 1904)",minutes:18,fullWork:true,
     summary:"Tolstoy's influential inquiry into what art communicates, whom it reaches and what makes an experience genuinely artistic.",
     source:"Project Gutenberg · eBook 64908",origin:"Russian original; English translation by Aylmer Maude, published in the 1904 English edition. The translation is separately credited in the catalogue record.",
     url:"https://www.gutenberg.org/ebooks/64908",externalOnly:true,
@@ -126,4 +126,40 @@ window.DAILY_READER_CATALOGUE = [
     language:"English",region:"Western Europe · Ireland",tradition:"Aestheticism and Irish literary modernism",period:"late 19th century",form:"Literary dialogue / essay",
     genres:["aesthetic criticism","dialogue"],themes:["art","imagination","realism","literature"],perspectives:["essayist","dramatist"],editorialScore:4.7,
     rightsStatus:"Project Gutenberg lists this edition as public domain in the United States; check local law before reuse."
+  },
+  {
+    id:"essay-lamb-roast-pig",type:"ESSAY",title:"A Dissertation upon Roast Pig",author:"Charles Lamb",year:"1822",minutes:12,fullWork:true,
+    summary:"A comic meditation disguised as culinary history, in which Lamb turns an absurd origin story into an essay on appetite, pleasure and human nature.",
+    source:"Project Gutenberg · eBook 43566",origin:"An individual essay by Charles Lamb, first published in the London Magazine in September 1822.",
+    url:"https://www.gutenberg.org/ebooks/43566",externalOnly:false,
+    bio:"Charles Lamb (1775–1834) was an English essayist and poet, remembered especially for the Elia essays written with conversational intimacy and humour.",
+    bioUrl:"https://en.wikipedia.org/wiki/Charles_Lamb",
+    sourceLanguage:"English",displayLanguage:"English",translationStatus:"original",language:"English",
+    region:"Western Europe · England",tradition:"English familiar essay",period:"early 19th century",form:"Humorous essay",
+    genres:["familiar essay","humour"],themes:["appetite","pleasure","custom","imagination"],perspectives:["essayist"],editorialScore:4.5,
+    rightsStatus:"Project Gutenberg lists this edition as public domain in the United States; check local law before reuse."
+  },
+  {
+    id:"essay-hazlitt-pleasure-hating",type:"ESSAY",title:"On the Pleasure of Hating",author:"William Hazlitt",year:"1826",minutes:16,
+    summary:"Hazlitt examines the stubborn pleasure people take in resentment, and the way hostility survives even when outward violence is restrained.",
+    source:"Wikisource · The Plain Speaker",origin:"Essay by William Hazlitt, published in The Plain Speaker: Opinions on Books, Men, and Things (1826).",
+    url:"https://en.wikisource.org/wiki/On_the_Pleasure_of_Hating",externalOnly:true,
+    bio:"William Hazlitt (1778–1830) was an English essayist, critic and social commentator, noted for his forceful prose and psychological insight.",
+    bioUrl:"https://en.wikipedia.org/wiki/William_Hazlitt",
+    sourceLanguage:"English",displayLanguage:"English",translationStatus:"original",language:"English",
+    region:"Western Europe · England",tradition:"Romantic-period English criticism",period:"early 19th century",form:"Critical essay",
+    genres:["moral psychology","social criticism"],themes:["hatred","resentment","human nature","politics"],perspectives:["essayist","critic"],editorialScore:4.7,
+    rightsStatus:"Public-domain historical essay; the Wikisource transcription is linked as the reading source."
+  },
+  {
+    id:"story-premchand-eidgah",type:"SHORT STORY",title:"ईदगाह",author:"मुंशी प्रेमचंद",year:"1933",minutes:18,
+    summary:"ईद के मेले में छोटा हामिद अपने लिए खिलौना या मिठाई नहीं, बल्कि अपनी दादी के लिए चिमटा चुनता है।",
+    source:"MunshiPremchand.com · मूल हिंदी पाठ",origin:"प्रेमचंद की हिंदी कहानी, 1933 में प्रकाशित; मूल पाठ का स्रोत कहानी को 'मूल पाठ' के रूप में प्रस्तुत करता है।",
+    url:"https://munshipremchand.com/works/short-stories/eidgah/",externalOnly:true,
+    bio:"मुंशी प्रेमचंद (1880–1936) हिंदी और उर्दू के प्रमुख कथाकार थे। उनकी कहानियों में ग्रामीण जीवन, सामाजिक विषमता और मानवीय संबंधों का यथार्थवादी चित्रण मिलता है।",
+    bioUrl:"https://www.hindwi.org/authors/premchand-1/story",
+    sourceLanguage:"Hindi",displayLanguage:"Hindi",translationStatus:"original",hindiOriginal:true,
+    language:"Hindi",region:"South Asia · North India",tradition:"आधुनिक हिंदी यथार्थवादी कहानी",period:"20वीं शताब्दी",form:"कहानी",
+    genres:["यथार्थवादी कथा","बाल मनोविज्ञान"],themes:["दादी-पोता","त्याग","गरीबी","ममता","ईद"],perspectives:["कथाकार"],editorialScore:4.8,
+    rightsStatus:"Original Hindi text linked to its host. The host's transcription and reuse terms should be checked separately."
   }];

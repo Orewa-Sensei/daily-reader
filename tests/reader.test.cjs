@@ -93,9 +93,12 @@ test('curated translations require an identifiable published translator',()=>{
  const items=window.DAILY_READER_CATALOGUE.map(w=>({...w,verified:true,sourceUrl:w.url}));
  const eligible=items.filter(w=>e.validWork(w));
  assert.ok(eligible.some(w=>w.id==='essay-tolstoy-art'));
+ assert.ok(eligible.some(w=>w.id==='essay-lamb-roast-pig'));
+ assert.ok(eligible.some(w=>w.id==='essay-hazlitt-pleasure-hating'));
  assert.ok(eligible.some(w=>w.id==='story-chekhov-misery'));
  assert.ok(eligible.some(w=>w.id==='story-akutagawa-spider-thread'));
  assert.ok(eligible.some(w=>w.id==='story-guleri-usne-kaha-tha'&&w.displayLanguage==='Hindi'&&w.hindiOriginal===true));
+ assert.ok(eligible.some(w=>w.id==='story-premchand-eidgah'&&w.displayLanguage==='Hindi'&&w.hindiOriginal===true));
  assert.ok(!eligible.some(w=>w.id==='story-tagore-postmaster'));
 });
 
