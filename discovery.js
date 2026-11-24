@@ -36,8 +36,11 @@ function textFormat(formats){
 }
 function classifyGutenberg(book,type){
  const meta=norm([book.title,...(book.subjects||[]),...(book.bookshelves||[])].join(' '));
+ const title=norm(book.title);
  if(type==='ESSAY'&&!/(essay|essays|literary criticism|aesthetics)/.test(meta))return false;
+ if(type==='ESSAY'&&/^(selected |collected |complete )?(essays|literary essays)$/.test(title))return false;
  if(type==='SHORT STORY'&&!/(short stor|tales|fables|folklore|legends)/.test(meta))return false;
+ if(type==='SHORT STORY'&&/^(selected |collected |complete )?(short stories|stories|tales|fables|folk tales)$/.test(title))return false;
  return true;
 }
 function gutenbergWork(b,type){
@@ -45,7 +48,7 @@ function gutenbergWork(b,type){
  const author=authors.join('; ');
  const subjects=(b.subjects||[]).slice(0,8);
  return {
-  id:'pg-'+b.id,type,title:b.title,author,year:'',minutes:type==='SHORT STORY'?12:15,
+  id:'pg-'+b.id,type,title:b.title,author,year:'',minutes:type==='SHORT STORY'?12:15,fullWork:true,
   summary:'Public-domain literary text discovered from the Project Gutenberg catalogue.',
   source:'Project Gutenberg · eBook '+b.id,origin:'English-language original by an author in the app’s verified English-language author list. Bibliographic details are available in the source record.',
   url:'https://www.gutenberg.org/ebooks/'+b.id,textUrl:textFormat(b.formats),externalOnly:false,
@@ -184,6 +187,7 @@ async function cacheText(work){
  if(!work?.id)return false;
  const isGutenberg=String(work.source||'').includes('Project Gutenberg')&&/gutenberg\.org\/ebooks\/(\d+)/.test(work.url||'');
  if(work.externalOnly&&!isGutenberg)return false;
+ if(work.externalOnly&&isGutenberg&&!work.fullWork&&!work.textStart&&!work.textEnd)return false;
  if(work.text)return true;
  const cached=await getCachedText(work.id);if(cached){work.text=cached;work.externalOnly=false;return true}
  if(!work.textUrl&&isGutenberg){
