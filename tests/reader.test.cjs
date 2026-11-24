@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const engineSource = fs.readFileSync('recommendation-engine.js','utf8');
 const discoverySource = fs.readFileSync('discovery.js','utf8');
+const catalogueSource = fs.readFileSync('catalogue.js','utf8');
 function engineContext(){
  const context={window:{},Date,Math};
  vm.runInNewContext(engineSource,context);
@@ -84,4 +85,15 @@ test('reserve validator removes malformed and cross-day duplicate works',()=>{
  const clean=d.cleanQueue([first,duplicate,malformed]);
  assert.equal(clean.length,1);
  assert.deepEqual(Array.from(clean[0],x=>x.id),['e1','s1','a1']);
+});
+
+test('curated translations require an identifiable published translator',()=>{
+ const e=engineContext(),window={};
+ vm.runInNewContext(catalogueSource,{window});
+ const items=window.DAILY_READER_CATALOGUE.map(w=>({...w,verified:true,sourceUrl:w.url}));
+ const eligible=items.filter(w=>e.validWork(w));
+ assert.ok(eligible.some(w=>w.id==='essay-tolstoy-art'));
+ assert.ok(eligible.some(w=>w.id==='story-chekhov-misery'));
+ assert.ok(eligible.some(w=>w.id==='story-akutagawa-spider-thread'));
+ assert.ok(!eligible.some(w=>w.id==='story-tagore-postmaster'));
 });
