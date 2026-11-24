@@ -234,7 +234,7 @@ function render(){
 async function displayReading(x){
  let articleText='';
  if(!x.text&&x.id)x.text=await DailyReaderDiscovery.getCachedText(x.id);
- if(!x.text&&x.textUrl)await DailyReaderDiscovery.cacheText(x);
+ if(!x.text&&(x.textUrl||String(x.source||'').includes('Project Gutenberg')))await DailyReaderDiscovery.cacheText(x);
  articleText=x.externalOnly
  ? '<div class="external-reading"><p>This reading is available from '+esc(x.source||'its original publisher')+'. Open the source edition to read the complete work.</p><a class="read-btn external-link" href="'+esc(x.url)+'" target="_blank" rel="noopener">Read original ↗</a></div>'
  : '<div class="reader-body">'+paragraphs(x.text||'The full text could not be loaded. Open the original source edition below.')+'</div>';
