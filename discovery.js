@@ -176,10 +176,10 @@ async function getCachedText(id){
 }
 async function cacheText(work){
  if(!work?.id)return false;
- const isGutenberg=String(work.source||'').includes('Project Gutenberg')&&/gutenberg\\.org\\/ebooks\\/(\\d+)/.test(work.url||'');
+ const isGutenberg=String(work.source||'').includes('Project Gutenberg')&&/gutenberg\.org\/ebooks\/(\d+)/.test(work.url||'');
  if(work.externalOnly&&!isGutenberg)return false;
  if(!work.textUrl&&isGutenberg){
-  const match=String(work.url).match(/ebooks\\/(\\d+)/);
+  const match=String(work.url).match(/ebooks\/(\d+)/);
   try{
    const metadata=await requestJSON('https://gutendex.com/books/'+match[1]);
    work.textUrl=textFormat(metadata.formats);
@@ -194,7 +194,7 @@ async function cacheText(work){
   db=await openDb();
   const response=await fetch(work.textUrl);if(!response.ok)throw new Error('Text source returned '+response.status);
   const raw=await response.text();
-  const clean=raw.replace(/^[\\s\\S]*?\\*{3}\\s*START OF (?:THE|THIS) PROJECT GUTENBERG EBOOK[\\s\\S]*?\\*{3}\\s*/i,'').replace(/\\*{3}\\s*END OF (?:THE|THIS) PROJECT GUTENBERG EBOOK[\\s\\S]*$/i,'').trim();
+  const clean=raw.replace(/^[\s\S]*?\*{3}\s*START OF (?:THE|THIS) PROJECT GUTENBERG EBOOK[\s\S]*?\*{3}\s*/i,'').replace(/\*{3}\s*END OF (?:THE|THIS) PROJECT GUTENBERG EBOOK[\s\S]*$/i,'').trim();
   if(clean.length<500)throw new Error('Text source did not return a complete readable work');
   await new Promise((resolve,reject)=>{const tx=db.transaction('works','readwrite');tx.objectStore('works').put({id:work.id,text:clean,savedAt:Date.now(),sourceUrl:work.url});tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});
   work.text=clean;work.externalOnly=false;return true;
