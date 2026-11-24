@@ -145,8 +145,20 @@ async function discover(history,occupied){
  const queue=buildQueue(pools,MAX_DAYS);
  return {queue,diagnostics:{sources:{gutendex:results.slice(0,2).filter(x=>x.status==='fulfilled').length,openalex:results[2].status==='fulfilled'?1:0},candidateCounts:Object.fromEntries(TYPES.map(t=>[t,pools[t].length])),daysPrepared:queue.length,offlineTarget:MAX_DAYS,live:true}};
 }
-function loadQueue(){try{const q=JSON.parse(localStorage.getItem(QUEUE_KEY)||'[]');return Array.isArray(q)?q.filter(x=>Array.isArray(x)&&x.length===3&&new Set(x.map(w=>w.id)).size===3):[]}catch(e){return []}}
-function saveQueue(q){try{localStorage.setItem(QUEUE_KEY,JSON.stringify((q||[]).slice(0,MAX_DAYS)));return true}catch(e){return false}}
+function validEdition(day){
+ return Array.isArray(day)&&day.length===3&&day[0]?.type==='ESSAY'&&day[1]?.type==='SHORT STORY'&&day[2]?.type==='ARTICLE'&&new Set(day.map(w=>w?.id)).size===3&&day.every(w=>global.DailyReaderEngine?.validWork(w));
+}
+function cleanQueue(queue){
+ const used=new Set(),out=[];
+ for(const day of queue||[]){
+  if(!validEdition(day)||day.some(w=>used.has(w.id)))continue;
+  day.forEach(w=>used.add(w.id));out.push(day);
+  if(out.length===MAX_DAYS)break;
+ }
+ return out;
+}
+function loadQueue(){try{return cleanQueue(JSON.parse(localStorage.getItem(QUEUE_KEY)||'[]'))}catch(e){return []}}
+function saveQueue(q){try{localStorage.setItem(QUEUE_KEY,JSON.stringify(cleanQueue(q)));return true}catch(e){return false}}
 function openDb(){
  return new Promise((resolve,reject)=>{
   const req=indexedDB.open('daily-reader-content-v2',1);
