@@ -72,3 +72,16 @@ test('live discovery excludes read and reserved entries and rejects unknown-lang
  assert.ok(!ids.includes('pg-1000'));
  assert.equal(new Set(ids).size,ids.length);
 });
+
+test('reserve validator removes malformed and cross-day duplicate works',()=>{
+ const engine=engineContext();
+ const context={window:{DailyReaderEngine:engine},localStorage:{getItem(){return null},setItem(){}},AbortController,setTimeout,clearTimeout,fetch:async()=>({ok:true,json:async()=>({results:[]})})};
+ vm.runInNewContext(discoverySource,context);
+ const d=context.window.DailyReaderDiscovery;
+ const first=[work('e1','ESSAY'),work('s1','SHORT STORY'),work('a1','ARTICLE')];
+ const duplicate=[work('e1','ESSAY'),work('s2','SHORT STORY'),work('a2','ARTICLE')];
+ const malformed=[work('e3','SHORT STORY'),work('s3','ESSAY'),work('a3','ARTICLE')];
+ const clean=d.cleanQueue([first,duplicate,malformed]);
+ assert.equal(clean.length,1);
+ assert.deepEqual(Array.from(clean[0],x=>x.id),['e1','s1','a1']);
+});
