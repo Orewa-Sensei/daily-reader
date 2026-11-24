@@ -186,5 +186,5 @@ async function cacheText(work){
  }catch(e){work.externalOnly=true;work.cacheError=String(e);return false}
  finally{db?.close()}
 }
-global.DailyReaderDiscovery={discover,loadQueue,saveQueue,cacheText,getCachedText,seenIds,buildQueue};
+global.DailyReaderDiscovery={discover,loadQueue,saveQueue,cacheText,getCachedText,seenIds,buildQueue,cleanQueue};
 })(window);
