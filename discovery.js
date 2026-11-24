@@ -20,7 +20,7 @@ const ENGLISH_AUTHOR_ALLOWLIST=[
  'carroll, lewis','j m barrie','barrie, j m','jerome k jerome','jerome, jerome k',
  'thomas hardy','hardy, thomas','elizabeth gaskell','gaskell, elizabeth','george eliot','eliot, george',
  'r l stevenson','stevenson, robert louis','joseph conrad','conrad, joseph','e m forster',
- 'forster, e m','bernard shaw','shaw, bernard','william makepeace thackeray','thackeray, william makepeace'
+ 'forster, e m','bernard shaw','shaw, bernard','william makepeace thackeray','thackeray, william makepeace',\n 'ralph waldo emerson','emerson, ralph waldo','henry david thoreau','thoreau, henry david','john ruskin','ruskin, john',\n 'thomas babington macaulay','macaulay, thomas babington','washington irving','irving, washington','nathaniel hawthorne','hawthorne, nathaniel',\n 'ambrose bierce','bierce, ambrose','kate chopin','chopin, kate','mary shelley','shelley, mary','herman melville','melville, herman',\n 'walt whitman','whitman, walt','andrew lang','lang, andrew','oliver wendell holmes','holmes, oliver wendell','john galtworthy','galsworthy, john'
 ];
 function authorKey(value){return norm(value).replace(/[^a-z0-9]+/g,' ').trim()}
 function knownEnglishAuthor(authors){
@@ -56,10 +56,16 @@ async function gutenbergSearch(type,seen){
  const terms=type==='ESSAY'?['essays','literary criticism','aesthetics']:['short stories','tales','fables'];
  const pages=await Promise.allSettled(terms.map(term=>requestJSON('https://gutendex.com/books/?languages=en&search='+encodeURIComponent(term))));
  const map=new Map();
- for(const p of pages)if(p.status==='fulfilled')for(const b of p.value.results||[]){
+ const ingest=page=>{for(const b of page?.results||[]){
   const id='pg-'+b.id;
   if(seen.has(id)||map.has(id)||!knownEnglishAuthor(b.authors)||!textFormat(b.formats)||!classifyGutenberg(b,type))continue;
   map.set(id,gutenbergWork(b,type));
+ }};
+ for(const p of pages)if(p.status==='fulfilled')ingest(p.value);
+ if(map.size<12){
+  const next=pages.filter(p=>p.status==='fulfilled'&&p.value.next).map(p=>p.value.next);
+  const more=await Promise.allSettled(next.map(url=>requestJSON(url)));
+  for(const p of more)if(p.status==='fulfilled')ingest(p.value);
  }
  return shuffle([...map.values()],hash(type+Date.now()));
 }
